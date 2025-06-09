@@ -1,0 +1,42 @@
+
+weather:
+  midas:
+    version: "202407"
+    tables:
+      RH: "uk-hourly-rain-obs"
+      TD: "uk-daily-temperature-obs"
+      WH: "uk-hourly-weather-obs"
+      WM: "uk-mean-wind-obs"
+    columns:
+      RH: []
+      TD: []
+      WH: []
+      WM: []
+  cache_dir: "data/raw/weather"
+timetable:
+  api: ""
+  url: ""
+  input: "data/input/timetable"
+  cache: "data/raw/timetable.csv"
+delay:
+  api: ""
+  url: ""
+  input: "data/input/delay"
+  cache: "data/raw/delay.csv"
+ref:
+  bplan:
+    api: ""
+    url: ""
+    input: "data/raw/bplan.zip"
+    cache: "data/raw/bplan.csv"
+  corpus:
+    api: ""
+    url: ""
+    input: "data/raw/corpus.zip"
+    cache: "data/raw/corpus.csv"
+  bank_holiday:
+    api: ""
+    url: "https://www.gov.uk/bank-holidays.json"
+    input: ""
+    cache: "data/raw/bank_holiday.json"
+

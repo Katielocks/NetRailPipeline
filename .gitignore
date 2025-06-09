@@ -1,0 +1,11 @@
+data/
+*.csv
+*.json
+*.zip
+*.pyc
+.env
+src/rail_data/transforms/
+src/rail_data/main.py
+src/rail_data/utils.py
+src/rail_data/features/
+src/rail_data/models/
