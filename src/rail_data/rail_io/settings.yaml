@@ -22,7 +22,8 @@ delay:
   api: ""
   url: ""
   input: "data/input/delay"
-  cache: "data/raw/delay.csv"
+  cache: "data/raw/delay"
+  cache_format: "csv"
 ref:
   bplan:
     api: ""
