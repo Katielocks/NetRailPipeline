@@ -5,7 +5,6 @@ import csv
 import io
 import logging
 import zipfile
-import datetime as dt
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Dict, Iterable, Iterator, Optional, TextIO, Union

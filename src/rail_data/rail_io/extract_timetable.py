@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 import pandas as pd
-from tqdm import tqdm
 
 from config import settings
 from utils import write_cache
@@ -18,7 +17,6 @@ log = logging.getLogger(__name__)
 
 
 def _collect_zip_files(input_dir: Path) -> List[Path]:
-    """Return all *.zip files in *input_dir*, sorted by name."""
     return sorted(p for p in input_dir.glob("*.zip"))
 
 def _get_timetable_periods(start, end):
@@ -60,11 +58,9 @@ def extract_timetable(
     ----------
     input_path
         Directory containing Network Rail CIF ZIP archives *or* a single ZIP
-        file. The path is expanded (``~``) and resolved, so both relative and
-        absolute inputs are accepted.
+        file.
     cache_path
-        If set, the resulting DataFrame is cached to *cache_path* using
-        :pyfunc:`utils.write_cache`.  Pass ``None`` to skip caching.
+        If set, the resulting DataFrame is cached to *cache_path*.
     start_time, end_time
         Inclusive date window.  If provided, only timetable periods
         intersecting this window will be processed.  **Both** parameters must
@@ -75,21 +71,8 @@ def extract_timetable(
     -------
     pandas.DataFrame
         Concatenated hops extracted from the selected CIF archives.
-
-    Raises
-    ------
-    FileNotFoundError
-        *input_path* does not exist.
-    ValueError
-        Only one of *start_time* or *end_time* was given, or the window is
-        inverted.
-    ZipFileNotFoundError
-        No CIF ZIPs matched the supplied criteria.
     """
 
-    # ------------------------------------------------------------------
-    # Validate & normalise inputs
-    # ------------------------------------------------------------------
     input_path = Path(input_path).expanduser().resolve()
     if not input_path.exists():
         raise FileNotFoundError(input_path)
@@ -99,9 +82,6 @@ def extract_timetable(
     if start_time and end_time and start_time > end_time:
         raise ValueError("'start_time' must be earlier than or equal to 'end_time'.")
 
-    # ------------------------------------------------------------------
-    # Build the candidate file list
-    # ------------------------------------------------------------------
     if input_path.is_file():
         if input_path.suffix.lower() != ".zip":
             raise ValueError(f"Expected a .zip archive, got {input_path.name}")
@@ -112,7 +92,6 @@ def extract_timetable(
     if not zip_files:
         raise FileNotFoundError(f"No .zip archives found under {input_path}")
 
-    # Optional date‑range filtering ------------------------------------------------
     if start_time and end_time:
         wanted_codes = set(_get_timetable_periods(start_time, end_time))
         zip_files = [p for p in zip_files if p.stem in wanted_codes]
@@ -126,7 +105,7 @@ def extract_timetable(
     log.info("Processing %d CIF zip file(s) from %s", len(zip_files), input_path)
 
     dataframes = (
-        extract_CIF(p, cache_path=None) for p in tqdm(zip_files, desc="Timetable zips")
+        extract_CIF(p, cache_path=None) for p in zip_files
     )
     df = pd.concat(dataframes, ignore_index=True)
     log.info("Total hops extracted: %d", len(df))
