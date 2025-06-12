@@ -5,6 +5,7 @@ import csv
 import io
 import logging
 import zipfile
+import datetime as dt
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Dict, Iterable, Iterator, Optional, TextIO, Union
@@ -32,6 +33,7 @@ cfg = settings.timetable
 
 log = logging.getLogger(__name__)
 DEFAULT_ENCODING = "latin-1"
+
 
 def slice_field(rec: str, start: int, length: int) -> str:
     return rec[start - 1 : start - 1 + length]
@@ -160,10 +162,12 @@ def write_hops(
         out_path = Path(out)
         write_cache(out_path,df)
         return df
+    
 
 
 
-def get_timetable_df(zip_path: Union[str, Path], cache_path: Union[str, Path]) -> pd.DataFrame:
+
+def extract_CIF(zip_path: Union[str, Path], cache_path: Union[str, Path] = None) -> pd.DataFrame:
     log.info("parsing CIF zip: %s",cache_path)
     lines_mem = list(iter_cif_lines(zip_path))
     _, tip2stanox = build_tiploc_maps(lines_mem)
@@ -174,5 +178,3 @@ def get_timetable_df(zip_path: Union[str, Path], cache_path: Union[str, Path]) -
     )
     log.info("%d hops extracted", len(df))
     return df
-
-get_timetable_df("May23 Full CIF 230405.zip","timetable.csv")
