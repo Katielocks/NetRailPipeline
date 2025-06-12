@@ -7,7 +7,7 @@ import tempfile
 import zipfile
 from datetime import timedelta
 from pathlib import Path
-from typing import Any, Dict, List,Callable
+from typing import Any, Dict, List,Callable,Union
 
 import pandas as pd
 import numpy as np
@@ -65,14 +65,10 @@ def _osgb_to_wgs84(easting: float, northing: float) -> Dict[str, float]:
     return {"Latitude": lat, "Longitude": lon}
 
 
-def get_bplan(cache_location:Path=cfg.cache) -> pd.DataFrame:
-    return read_cache(cache_location)
     
 
 
-def fetch_and_parse_bplan() -> Dict[str, Any]:
-    input_path = cfg.input
-    output_path = cfg.cache
+def get_location_codes(input_path: Union[str, Path] = cfg.input, cache_path: Union[str, Path] = cfg.cache) -> Dict[str, Any]:
 
     try:
         zip_path = Path(input_path).expanduser().resolve()
@@ -119,6 +115,6 @@ def fetch_and_parse_bplan() -> Dict[str, Any]:
         raise BplanClientError(f"Error processing BPLAN DataFrame: {exc}") from exc
 
 
-    if output_path:
-        write_cache(output_path,df)
+    if cache_path:
+        write_cache(cache_path,df)
     return df

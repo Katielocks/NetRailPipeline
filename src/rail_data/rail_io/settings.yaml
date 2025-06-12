@@ -23,7 +23,7 @@ delay:
   url: ""
   input: "data/raw/incoming/delay"
   cache: "data/raw/archive/delay.csv"
-loc2elr:
+elr_mile_loc:
   location_code: "STANOX"
   max_distance_m: 1000
   seg_len_mi:  8
@@ -32,11 +32,11 @@ loc2elr:
   input: ""
   cache: "data/raw/archive/loc2elr.csv" 
 ref:
-  bplan:
+  netrail_loc:
     api: ""
     url: ""
     input: "data/raw/incoming/bplan.zip"
-    cache: "data/raw/archive/bplan.csv"
+    cache: "data/raw/archive/netrail_loc.csv"
   corpus:
     api: ""
     url: ""

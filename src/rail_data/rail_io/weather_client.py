@@ -28,7 +28,7 @@ class WeatherClient:
         bplan_path: str | Path | None = None,
     ) -> None:
 
-        self._bplan_cache = Path(bplan_path or cfg.ref.bplan.cache).expanduser().resolve()
+        self._bplan_cache = Path(bplan_path or cfg.ref.bplan.input).expanduser().resolve()
         self._bplan_input = Path(bplan_path or cfg.ref.bplan.cache).expanduser().resolve()
         if not self._bplan_path.exists():
             raise WeatherClientError(f"BPlan not found: {self._bplan_path}")

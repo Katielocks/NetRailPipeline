@@ -4,7 +4,6 @@ import gzip
 import json
 import io
 import logging
-import zipfile
 import pandas as pd
 from utils import read_cache,write_cache
 from config import settings
