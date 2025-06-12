@@ -23,7 +23,7 @@ delay:
   url: ""
   input: "data/raw/incoming/delay"
   cache: "data/raw/archive/delay.csv"
-elr_mile_loc:
+elr_loc:
   location_code: "STANOX"
   max_distance_m: 1000
   seg_len_mi:  8

@@ -5,13 +5,11 @@ import json
 import logging
 import tempfile
 import zipfile
-from datetime import timedelta
 from pathlib import Path
 from typing import Any, Dict, List,Callable,Union
 
 import pandas as pd
 import numpy as np
-from pyproj import Transformer
 
 
 from utils import read_cache,write_cache
@@ -20,7 +18,6 @@ from config import settings
 cfg = settings.ref.netrail_loc
 log = logging.getLogger(__name__)
 
-_TRANSFORMER = Transformer.from_crs("EPSG:27700", "EPSG:4326", always_xy=True)
 
 _FIELDS = [
     "RECORD_TYPE",
@@ -60,15 +57,12 @@ def _parse_loc_records(file_path: Path) -> List[Dict[str, Any]]:
     return records
 
 
-def _osgb_to_wgs84(easting: float, northing: float) -> Dict[str, float]:
-    lon, lat = _TRANSFORMER.transform(easting, northing)
-    return {"Latitude": lat, "Longitude": lon}
 
 
     
 
 
-def get_location_codes(input_path: Union[str, Path] = cfg.input, cache_path: Union[str, Path] = cfg.cache) -> Dict[str, Any]:
+def extract_location_codes(input_path: Union[str, Path] = cfg.input, cache_path: Union[str, Path] = cfg.cache) -> pd.DataFrame:
 
     try:
         zip_path = Path(input_path).expanduser().resolve()
@@ -105,12 +99,6 @@ def get_location_codes(input_path: Union[str, Path] = cfg.input, cache_path: Uni
 
         df = df[df["STANOX"].notna()]
         df = df[df["OS_EASTING"].notna() & df["OS_EASTING"].ne(0) & df["OS_EASTING"].ne(999_999)]
-
-        reproj = df.apply(
-            lambda r: _osgb_to_wgs84(r["OS_EASTING"], r["OS_NORTHING"]), axis=1
-        )
-        reproj_df = pd.DataFrame(list(reproj))
-        df = pd.concat([df.reset_index(drop=True), reproj_df], axis=1)
     except Exception as exc:
         raise BplanError(f"Error processing BPLAN DataFrame: {exc}") from exc
 
@@ -118,3 +106,10 @@ def get_location_codes(input_path: Union[str, Path] = cfg.input, cache_path: Uni
     if cache_path:
         write_cache(cache_path,df)
     return df
+
+def get_location_codes(input_path: Union[str, Path] = cfg.input, cache_path: Union[str, Path] = cfg.cache) -> pd.DataFrame:
+    if cache_path.exists():
+        return read_cache(cache_path)
+    else:
+        return extract_location_codes(input_path,cache_path)
+

@@ -34,7 +34,7 @@ class RefCfg(BaseModel):
     input: Optional[Path]
     cache: Optional[Path]
 
-    # Convert empty strings to None, otherwise expand->Path
+
     @validator("input", "cache", pre=True)
     def _clean_optional_paths(cls, v: str | Path | None):
         if v in ("", None):
@@ -45,7 +45,7 @@ class RefCfg(BaseModel):
         frozen = True
 
 
-class Loc2ElrCfg(RefCfg):
+class ElrLocCfg(RefCfg):
     loc_id_field: str = Field(alias="location_code")
     max_distance_m: int = Field(alias="max_distance_m")
     seg_length_mi: int = Field(alias="seg_len_mi")
@@ -59,16 +59,13 @@ class Settings(BaseModel):
     weather: WeatherSettings
     timetable: RefCfg
     delay: RefCfg
-    loc2elr: Loc2ElrCfg
+    loc2elr: ElrLocCfg
     ref: Dict[str, RefCfg]
 
     class Config:
         frozen = True
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Public helper
-# ──────────────────────────────────────────────────────────────────────────────
 def load_settings(path: str | Path | None = None) -> Settings:
     """
     Load **settings.yaml** and return a validated ``Settings`` object.
@@ -95,7 +92,6 @@ def load_settings(path: str | Path | None = None) -> Settings:
     try:
         return Settings.parse_obj(raw)
     except ValidationError as exc:
-        # Print all errors at once and abort
         raise SystemExit(exc.json(indent=2))
 
 
