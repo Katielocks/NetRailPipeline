@@ -5,7 +5,7 @@ import csv
 import io
 import logging
 import zipfile
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Dict, Iterable, Iterator, Optional, TextIO, Union
 
@@ -13,7 +13,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from config import settings
-from utils import write_cache,read_cache
+from utils import write_cache
 
 __all__ = [
     "Hop",
@@ -61,7 +61,7 @@ class Hop:
     end_date: str
 
     def as_dict(self) -> Dict[str, str]:
-        return self.__dict__
+        return asdict(self)
 
 def iter_cif_lines(zip_path: Path | str, encoding: str = DEFAULT_ENCODING) -> Iterator[str]:
     p = Path(zip_path)
@@ -69,7 +69,7 @@ def iter_cif_lines(zip_path: Path | str, encoding: str = DEFAULT_ENCODING) -> It
         raise FileNotFoundError(str(p))
     with zipfile.ZipFile(p) as zf:
         for name in sorted(zf.namelist()):
-            if not name.upper().endswith((".MCA", ".CFA")):
+            if not name.upper().endswith((".MCA", ".CFA",".CIF")):
                 continue
             log.debug("reading %s", name)
             with zf.open(name) as fh:
@@ -174,3 +174,5 @@ def get_timetable_df(zip_path: Union[str, Path], cache_path: Union[str, Path]) -
     )
     log.info("%d hops extracted", len(df))
     return df
+
+get_timetable_df("May23 Full CIF 230405.zip","timetable.csv")

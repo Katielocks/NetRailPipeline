@@ -12,32 +12,45 @@ weather:
       TD: []
       WH: []
       WM: []
-  cache_dir: "data/raw/weather"
+  cache_dir: "data/raw/archive/weather"
 timetable:
   api: ""
   url: ""
-  input: "data/input/timetable"
-  cache: "data/raw/timetable.csv"
+  input: "data/raw/incoming/timetable"
+  cache: "data/raw/archive/timetable"
 delay:
   api: ""
   url: ""
-  input: "data/input/delay"
-  cache: "data/raw/delay"
-  cache_format: "csv"
+  input: "data/raw/incoming/delay"
+  cache: "data/raw/archive/delay.csv"
+loc2elr:
+  location_code: "STANOX"
+  max_distance_m: 1000
+  seg_len_mi:  8
+  api: ""
+  url: ""
+  input: ""
+  cache: "data/raw/archive/loc2elr.csv" 
 ref:
   bplan:
     api: ""
     url: ""
-    input: "data/raw/bplan.zip"
-    cache: "data/raw/bplan.csv"
+    input: "data/raw/incoming/bplan.zip"
+    cache: "data/raw/archive/bplan.csv"
   corpus:
     api: ""
     url: ""
-    input: "data/raw/corpus.zip"
-    cache: "data/raw/corpus.csv"
+    input: "data/raw/incoming/corpus.zip"
+    cache: "data/raw/archive/corpus.csv"
   bank_holiday:
     api: ""
     url: "https://www.gov.uk/bank-holidays.json"
     input: ""
-    cache: "data/raw/bank_holiday.json"
+    cache: "data/raw/archive/bank_holiday.json"
+  track_model:
+    api: ""
+    url: ""
+    input: "data/raw/incoming/NWR_Track_model.zip"
+    cache: ""
+
 
