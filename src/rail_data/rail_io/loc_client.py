@@ -17,7 +17,7 @@ from pyproj import Transformer
 from utils import read_cache,write_cache
 from config import settings
 
-cfg = settings.ref.bplan
+cfg = settings.ref.netrail_loc
 log = logging.getLogger(__name__)
 
 _TRANSFORMER = Transformer.from_crs("EPSG:27700", "EPSG:4326", always_xy=True)
@@ -39,7 +39,7 @@ _FIELDS = [
 ]
 
 
-class BplanClientError(RuntimeError):
+class BplanError(RuntimeError):
     """Raised whenever we can't fetch/unpack/parse the BPLAN doc."""
 
 
@@ -75,7 +75,7 @@ def get_location_codes(input_path: Union[str, Path] = cfg.input, cache_path: Uni
         if not zip_path.exists():
             raise FileNotFoundError(f"Local BPLAN not found at {zip_path}")
     except Exception as exc:
-        raise BplanClientError(f"Could not locate BPLAN: {exc}") from exc
+        raise BplanError(f"Could not locate BPLAN: {exc}") from exc
 
     try:
         with zipfile.ZipFile(zip_path) as zf:
@@ -87,7 +87,7 @@ def get_location_codes(input_path: Union[str, Path] = cfg.input, cache_path: Uni
                     candidate = m
                     break
             if candidate is None:
-                raise BplanClientError(
+                raise BplanError(
                     f"No .txt or .txt.gz found inside {zip_path.name}"
                 )
 
@@ -95,7 +95,7 @@ def get_location_codes(input_path: Union[str, Path] = cfg.input, cache_path: Uni
                 extracted = zf.extract(candidate, path=td)
                 loc_records = _parse_loc_records(Path(extracted))
     except Exception as exc:
-        raise BplanClientError(f"Failed to unpack/parse BPLAN: {exc}") from exc
+        raise BplanError(f"Failed to unpack/parse BPLAN: {exc}") from exc
 
     try:
         df = pd.DataFrame(loc_records)
@@ -112,7 +112,7 @@ def get_location_codes(input_path: Union[str, Path] = cfg.input, cache_path: Uni
         reproj_df = pd.DataFrame(list(reproj))
         df = pd.concat([df.reset_index(drop=True), reproj_df], axis=1)
     except Exception as exc:
-        raise BplanClientError(f"Error processing BPLAN DataFrame: {exc}") from exc
+        raise BplanError(f"Error processing BPLAN DataFrame: {exc}") from exc
 
 
     if cache_path:
