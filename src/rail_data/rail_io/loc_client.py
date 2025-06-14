@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import gzip
-import json
 import logging
 import tempfile
 import zipfile

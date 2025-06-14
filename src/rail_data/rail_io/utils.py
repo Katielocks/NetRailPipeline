@@ -2,6 +2,8 @@ from __future__ import annotations
 from typing import Callable, Union
 import pandas as pd
 from pathlib import Path
+import logging
+log = logging.getLogger(__name__)
 
 _OUTPUT_WRITERS: dict[str, Callable[[pd.DataFrame, Path], None]] = {
     "csv":     lambda df, p: df.to_csv(p, index=False),
@@ -76,3 +78,45 @@ def write_cache(cache_path: Union[str, Path], df: pd.DataFrame, mdir: bool = Tru
         raise IOError(
             f"Failed to write DataFrame to '{cache_path}' as {cache_fmt}: {e}"
         ) from e
+
+from pathlib import Path
+from typing import Union, Callable
+import warnings
+import logging
+
+log = logging.getLogger(__name__)
+
+def get_cache(
+    cache_path: Union[str, Path],
+    input_path: Union[str, Path, None] = None,
+    gen_func: Callable | None = None
+):
+    cache_path = Path(cache_path)
+    input_path = Path(input_path) if input_path is not None else None
+
+    if not cache_path.parent.is_dir():
+        raise ValueError(f"{cache_path.parent!r} is not a directory")
+
+    candidates = [
+        f".{p.suffix}"
+        for p in cache_path.parent.iterdir()
+        if p.is_file()
+        and p.stem == cache_path.stem
+        and p.suffix != cache_path.suffix
+        and p.suffix in _INPUT_READERS
+    ]
+    if cache_path.exists():
+        return read_cache(cache_path)
+    if input_path and input_path.exists() and gen_func and isinstance(gen_func,Callable):
+        return gen_func(input_path, cache_path)
+
+    msg = f"No cache file found at {cache_path!r}"
+    if input_path:
+        msg += f" and input file {input_path!r} does not exist"
+        msg += "."
+    if gen_func:
+        msg += f" and input function {gen_func!r} does not exist"
+        msg += "."
+    if candidates:
+        msg += f" Did you mean one of these formats? {', '.join(candidates)}"
+    raise FileNotFoundError(msg)

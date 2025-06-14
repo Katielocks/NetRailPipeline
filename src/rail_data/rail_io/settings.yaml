@@ -3,34 +3,32 @@ weather:
   midas:
     version: "202407"
     tables:
-      RH: "uk-hourly-rain-obs"
-      TD: "uk-daily-temperature-obs"
-      WH: "uk-hourly-weather-obs"
-      WM: "uk-mean-wind-obs"
-    columns:
       RH: []
       TD: []
       WH: []
       WM: []
   cache_dir: "data/raw/archive/weather"
+  cache_format: "csv"
 timetable:
   api: ""
   url: ""
   input: "data/raw/incoming/timetable"
   cache: "data/raw/archive/timetable"
+  cache_format: "csv"
 delay:
   api: ""
   url: ""
   input: "data/raw/incoming/delay"
-  cache: "data/raw/archive/delay.csv"
-elr_loc:
+  cache: "data/raw/archive/delay"
+  cache_format: "csv"
+geospatial:
   location_code: "STANOX"
   max_distance_m: 1000
   seg_len_mi:  8
   api: ""
   url: ""
   input: ""
-  cache: "data/raw/archive/loc2elr.csv" 
+  cache: "data/raw/archive/geospatial_buckets_mapping.csv" 
 ref:
   netrail_loc:
     api: ""
