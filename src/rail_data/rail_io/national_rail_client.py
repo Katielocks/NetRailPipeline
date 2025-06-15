@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import date
 from typing import Any, Dict, Iterable, Mapping, Optional
 import os
-from session import Session
+from .session import Session
 
 __all__ = ["NationalRailSession", "STATIC_FEEDS"]
 __version__ = "0.2.0"

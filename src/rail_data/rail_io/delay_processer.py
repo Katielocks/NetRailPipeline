@@ -7,7 +7,7 @@ import zipfile
 from pathlib import Path
 from typing import Final, Mapping
 import pandas as pd
-from utils import write_cache
+from .utils import write_cache
 
 _COL_NAMES: Final[list[str]] = [
     "FINANCIAL_YEAR_PERIOD",

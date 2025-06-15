@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Union
 
-from config import settings
+from .config import settings
 
 log = logging.getLogger(__name__)
 

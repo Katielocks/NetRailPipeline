@@ -3,7 +3,7 @@ from typing import Union
 import logging
 import pandas as pd
 import json
-from utils import write_cache,read_cache,get_cache       
+from .utils import write_cache,read_cache,get_cache       
 from config import settings
 
 class CORPUSClientError(Exception):

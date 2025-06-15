@@ -13,7 +13,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from config import settings
-from utils import write_cache
+from .utils import write_cache
 
 __all__ = [
     "Hop",

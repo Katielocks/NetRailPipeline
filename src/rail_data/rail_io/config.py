@@ -52,7 +52,6 @@ class RefCfg(BaseModel):
     model_config = ConfigDict(frozen=True)
 
 
-# ─────────────────────────── Helper root-model ───────────────────────
 
 class RefCfgMap(RootModel[Dict[str, RefCfg]]):
     model_config = ConfigDict(frozen=True)
@@ -98,7 +97,6 @@ class Settings(BaseModel):
     model_config = ConfigDict(frozen=True)
 
 
-# ───────────────────────── Settings loader ───────────────────────────
 
 def load_settings(path: str | Path | None = None) -> Settings:
     """

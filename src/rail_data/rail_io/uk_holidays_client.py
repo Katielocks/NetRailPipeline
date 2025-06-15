@@ -3,8 +3,8 @@ from __future__ import annotations
 from session import Session
 import pandas as pd
 import logging
-from config import settings
-from utils import write_cache
+from .config import settings
+from .utils import write_cache
 
 class UKHolidaysClientError(RuntimeError):
     pass

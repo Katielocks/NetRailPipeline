@@ -11,8 +11,9 @@ import pandas as pd
 import numpy as np
 
 
-from utils import read_cache, write_cache
-from config import settings
+from .utils import read_cache, write_cache
+from .config import settings
+
 log = logging.getLogger(__name__)
 
 

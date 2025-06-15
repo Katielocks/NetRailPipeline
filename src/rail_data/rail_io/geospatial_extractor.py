@@ -6,12 +6,12 @@ from typing import Union
 
 import pandas as pd
 import geopandas as gpd
-
-from loc_client import extract_location_codes
 from loc2elr import link_loc_to_elr
-from track_client import get_track
-from utils import write_cache, get_cache
-from config import settings
+
+from .location_client import extract_location_codes
+from .track_client import get_track
+from .utils import write_cache, get_cache
+from .config import settings
 
 
 def extract_geospatial( location_code: str,

@@ -5,12 +5,12 @@ from typing import Tuple, Union, DefaultDict
 import numpy as np
 import pandas as pd
 from pyproj import Transformer
-
-from midas_client import download_locations
-from utils import read_cache,write_cache
-from config import settings
 import logging
- 
+
+from .midas_client import download_locations
+from .utils import read_cache,write_cache
+from .config import settings
+
 log = logging.getLogger(__name__)
 
 _TRANSFORMER = Transformer.from_crs("EPSG:27700", "EPSG:4326", always_xy=True)

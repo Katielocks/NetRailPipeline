@@ -5,9 +5,9 @@ import logging
 import datetime as dt
 from pathlib import Path
 from typing import Final, MutableMapping, Union, Dict, Set, List
-from config import settings
+from .config import settings
 
-from delay_processer import process_zipfile
+from .delay_processer import process_zipfile
 
 _YEAR_START: Final[tuple[int, int]] = (4, 1)  # (month, day) – UK rail FY begins 1 April
 _PART_DURATION: Final[dt.timedelta] = dt.timedelta(days=28)

@@ -7,10 +7,9 @@ from typing import List, Union
 
 import pandas as pd
 
-from config import settings
-from utils import write_cache,get_cache
-
-from cif_hop_extract import extract_CIF
+from .config import settings
+from .utils import write_cache,get_cache
+from .cif_hop_extract import extract_CIF
 
 log = logging.getLogger(__name__)
 
