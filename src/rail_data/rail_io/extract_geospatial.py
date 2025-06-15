@@ -21,7 +21,28 @@ def extract_geospatial( location_code: str,
                     loc_df: pd.DataFrame,
                     track_shp: gpd.geodataframe
                     ) -> pd.DataFrame:
-    
+    """Generate geospatial buckets around a location code.
+
+    Parameters
+    ----------
+    location_code
+        Column in ``loc_df`` identifying the location code to use when linking
+        to the ELR track data.
+    seg_len_mi
+        Length of track segments to extract, in miles.
+    max_distance_m
+        Maximum distance from the location to include, in metres.
+    cache_path
+        Path to store the resulting GeoDataFrame.
+    loc_df
+        DataFrame of location reference data.
+    track_shp
+        Loaded track shapefile as a :class:`geopandas.GeoDataFrame`.
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame describing each extracted geospatial bucket and location id mapping.
+    """
 
     geospatial_buckets = link_loc_to_elr(loc_df,
                               track_shp,
@@ -42,7 +63,33 @@ def get_geospatial(
                    location_cache: Union[str, Path] | None = None,
                    location_input: Union[str, Path] | None = None,
                    track_input: Union[str, Path] | None = None):
-    
+    """Return or create geospatial buckets describing track around locations.
+
+    Parameters take precedence over values defined in :mod:`settings` when
+    provided.  If a cache exists at ``cache_path`` it is returned; otherwise the
+    location and track data are loaded and :func:`extract_geospatial` is used to
+    generate the dataset.
+
+    Parameters
+    ----------
+    location_code
+        Field in the location DataFrame identifying the location code column.
+    seg_len_mi
+        Length of track segments in miles.
+    max_distance_m
+        Maximum distance from the location to include, in metres.
+    cache_path
+        Destination for the cached geospatial buckets.
+    location_cache, location_input
+        Paths used to obtain the location reference DataFrame.
+    track_input
+        Path to the track model (directory, ``.shp`` or ``.zip``).
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame produced by :func:`extract_geospatial`.
+    """
     if settings:
         if settings.geospatial:
             cache_path = cache_path or settings.geospatial.cache

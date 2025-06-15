@@ -60,7 +60,20 @@ def _parse_loc_records(file_path: Path) -> List[Dict[str, Any]]:
 
 
 def extract_location_codes(input_path: Union[str, Path] = None, cache_path: Union[str, Path] = None) -> pd.DataFrame:
+    """Parse the Network Rail BPLAN archive into a DataFrame.
 
+    Parameters
+    ----------
+    input_path
+        Path to the BPLAN ``.zip`` archive.
+    cache_path
+        Optional path where the resulting DataFrame will be cached.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Cleaned location reference records.
+    """
     if settings and settings.ref.netrail_loc:
         input_path = settings.ref.netrail_loc.input
         cache_path = settings.ref.netrail_loc.cache
@@ -109,7 +122,7 @@ def extract_location_codes(input_path: Union[str, Path] = None, cache_path: Unio
     return df
 
 def get_location_codes(input_path: Union[str, Path] = None, cache_path: Union[str, Path] = None) -> pd.DataFrame:
-
+    """Return cached location codes or extract them from ``input_path``."""
     if settings and settings.ref.netrail_loc:
         input_path = settings.ref.netrail_loc.input
         cache_path = settings.ref.netrail_loc.cache
@@ -117,5 +130,5 @@ def get_location_codes(input_path: Union[str, Path] = None, cache_path: Union[st
     if cache_path and cache_path.exists():
         return read_cache(cache_path)
     else:
-        return extract_location_codes(input_path,cache_path)
+        return extract_location_codes(input_path, cache_path)
 

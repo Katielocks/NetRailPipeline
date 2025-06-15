@@ -118,7 +118,31 @@ def get_weather(
     cache_dir: str | Path | None = None,
     cache_format: str | None = None,
 ) -> pd.DataFrame:
-    
+    """Retrieve weather data, downloading any missing tables.
+
+    The function looks for cached MIDAS tables under ``cache_dir``.  If some of
+    the requested ``tables`` or ``years`` are absent, it delegates to
+    :func:`extract_weather` to download them.  ``geospatial`` may be either the
+    DataFrame returned by :func:`get_geospatial` or a path to its cache.
+
+    Parameters
+    ----------
+    geospatial
+        Geospatial DataFrame or path to its cache.
+    start_date, end_date
+        Inclusive date range for which weather data should be ensured.
+    tables
+        Mapping of MIDAS table names to lists of observation columns.
+    version
+        MIDAS dataset version.
+    cache_dir, cache_format
+        Directory and file format used for caching.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Combined station mapping for all requested tables/years.
+    """
     
     years = [str(y) for y in range(start_date.year, end_date.year + 1)]
 

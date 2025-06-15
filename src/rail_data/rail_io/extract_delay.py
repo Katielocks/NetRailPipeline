@@ -126,7 +126,23 @@ def extract_delay_dataset(
     out_format: Path = None,
 
 ) -> None:
+    """Process raw delay ZIPs into cached files.
 
+    Parameters
+    ----------
+    business_period
+        Mapping of business year codes to the set of period identifiers to
+        extract.
+    overwrite
+        If ``True``, overwrite any existing cached files.
+    src_dir
+        Directory containing the raw ZIP archives downloaded from
+        ``raildata.org.uk``.
+    out_dir
+        Destination directory for processed files.
+    out_format
+        File extension to use when writing the processed data.
+    """
     if not src_dir.is_dir():
         raise SystemExit(f"Input directory {src_dir} does not exist")
 
@@ -166,7 +182,24 @@ def get_delay_dataset(
     src_dir: Path = None,
     out_dir: Path = None,
     out_format: Path = None):
-     
+    """Ensure delay datasets exist for the specified date range.
+
+    Parameters
+    ----------
+    start_date, end_date
+        Inclusive date window to cover.  If omitted the entire available range
+        is processed.
+    src_dir, out_dir
+        Override the default input and output directories in ``settings``.
+    out_format
+        File extension for generated files.
+
+    Returns
+    -------
+    pandas.DataFrame | None
+        ``None`` if all datasets were already present, otherwise the processing
+        result from :func:`extract_delay_dataset`.
+    """
     if settings and settings.delay:
          src_dir = src_dir or settings.delay.input
          out_dir = out_dir or settings.delay.cache

@@ -15,7 +15,22 @@ log = logging.getLogger(__name__)
 
 def extract_corpus(file_path: Union[str, Path],
                encoding: str = DEFAULT_ENCODING) -> pd.DataFrame:
-    
+    """Load a CORPUS file into a :class:`pandas.DataFrame`.
+
+    Parameters
+    ----------
+    file_path:
+        Path to the CORPUS file.  Can be a plain JSON/CSV file or a
+        gzip-compressed variant.
+    encoding:
+        Text encoding used for JSON files.  Defaults to ``"latin-1"`` which is
+        the format most CORPUS exports use.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Parsed CORPUS records.
+    """
     p = Path(file_path).expanduser().resolve()
     if not p.exists():
         raise FileNotFoundError(f"File not found: {p}")
@@ -52,6 +67,25 @@ def extract_corpus(file_path: Union[str, Path],
 
 
 def get_corpus(cache_path: Union[str, Path],input_path = Union[str, Path]) -> pd.DataFrame:
+    """Return the CORPUS DataFrame from *cache_path* or generate it.
+
+    The function first checks ``cache_path`` for an existing cached dataset.
+    If not found, :func:`extract_corpus` is called with ``input_path`` and the
+    resulting frame is cached.
+
+    Parameters
+    ----------
+    cache_path
+        Expected location of the cached DataFrame.
+    input_path
+        Path to the raw CORPUS source file used when the cache is missing.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The CORPUS dataset.
+    """
+        
     if settings and settings.ref.corpus:
         cache_path = cache_path or settings.ref.corpus.cache
         input_path = input_path or settings.ref.corpus.input

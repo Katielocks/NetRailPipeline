@@ -10,7 +10,6 @@ from typing import Union
 from config import settings
 
 log = logging.getLogger(__name__)
-cfg = settings.ref.track_model
 
 class ELRClientError(Exception):
     pass
@@ -59,8 +58,19 @@ def _validate_standalone_shp(path: Path) -> Path:
     return path
 
 @contextmanager
-def get_track(input_path: Union[str, Path] = cfg.input):
+def get_track(input_path: Union[str, Path]):
+    """Yield the path to a track shapefile from ``input_path``.
+
+    ``input_path`` may be a directory containing the track model, a direct path
+    to ``nwr_trackcentrelines.shp`` or a ``.zip`` archive containing the
+    shapefile and its ancillary files.  The function yields the resolved path to
+    the ``.shp`` file and cleans up any temporary extraction directory when
+    used as a context manager.
+    """
     input_path = Path(input_path).expanduser().resolve()
+
+    if settings and settings.ref.track_model:
+        input_path = input_path or settings.ref.track_model.input
 
     if input_path.suffix.lower() == ".zip":
         with _open_zip(input_path) as shp:
