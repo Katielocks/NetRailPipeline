@@ -14,7 +14,6 @@ _YEAR_START: Final[tuple[int, int]] = (4, 1)  # (month, day) – UK rail FY begi
 _PART_DURATION: Final[dt.timedelta] = dt.timedelta(days=28)
 
 log = logging.getLogger(__name__)
-cfg  = settings.delay
 
 def _check_folder(
     path: Path,
@@ -120,13 +119,11 @@ def _prune_business_period_map(
 
 
 def extract_delay_dataset(
-    start_date: dt.datetime | None = None,
-    end_date: dt.datetime | None = None,
-    import_all: bool = False,
+    business_period: MutableMapping[str, set[str]] = None,
     overwrite: bool = False,
-    src_dir: Path = cfg.input,
-    out_dir: Path = cfg.cache,
-    out_format: Path = cfg.cache_format,
+    src_dir: Path = None,
+    out_dir: Path = None,
+    out_format: Path = None,
 
 ) -> None:
 
@@ -135,35 +132,23 @@ def extract_delay_dataset(
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    if start_date is None or end_date is None:
+    if business_period is None:
         import_all = True
 
-    business_period_parts: MutableMapping[str, set[str]] = _build_business_period_map(
-        start_date,
-        end_date,
-        _YEAR_START,
-    )
 
-    if not overwrite:
-        business_period_parts = _prune_business_period_map(business_period_parts, out_dir, "csv", {"delay"})
-
-    if not business_period_parts:
-        log.info("Nothing to do – all requested datasets already cached")
-        return
-
-    raw_delay_check = _check_folder(src_dir, "zip", business_period_parts.keys())
+    raw_delay_check = _check_folder(src_dir, "zip", business_period.keys())
     if raw_delay_check is not True:
         missing_years = ", ".join(str(x) for x in raw_delay_check)
         log.warning(" Missing raw datasets for: %s", missing_years)
         log.info("You can download ZIPs from https://raildata.org.uk/")
         for yr in raw_delay_check:
-            business_period_parts.pop(yr, None)
-        if not business_period_parts:
+            business_period.pop(yr, None)
+        if not business_period:
             log.info("No remaining datasets – exiting")
             return
 
     total = 0
-    for year in sorted(business_period_parts):
+    for year in sorted(business_period):
         zip_path = src_dir / f"{year}.zip"
         log.info("Processing %s ...", zip_path.name)
         total += process_zipfile(
@@ -171,6 +156,39 @@ def extract_delay_dataset(
             out_dir,
             out_format,
             overwrite=overwrite,
-            business_periods=business_period_parts,
+            business_periods=business_period,
             import_all=import_all,
         )
+
+def get_delay_dataset(
+    start_date: dt.datetime | None = None,
+    end_date: dt.datetime | None = None,
+    src_dir: Path = None,
+    out_dir: Path = None,
+    out_format: Path = None):
+     
+    if settings and settings.delay:
+         src_dir = src_dir or settings.delay.input
+         out_dir = out_dir or settings.delay.cache
+         out_format = out_format  or settings.delay.cache_format
+
+    business_period_parts: MutableMapping[str, set[str]] = _build_business_period_map(
+        start_date,
+        end_date,
+        _YEAR_START,
+    )
+
+    business_period_parts = _prune_business_period_map(business_period_parts, out_dir, "csv", {"delay"})
+    if not business_period_parts:
+        log.info("Nothing to do - all requested datasets already cached")
+        return None
+    else:
+        extract_delay_dataset(
+            business_period=business_period_parts,
+            overwrite=False,
+            src_dir=src_dir,
+            out_dir=out_dir,
+            out_format=out_format
+            )
+
+

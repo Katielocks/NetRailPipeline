@@ -1,61 +1,58 @@
 from pathlib import Path
-from typing import Iterator, Union
-import gzip
-import json
-import io
+from typing import Union
 import logging
 import pandas as pd
-from utils import read_cache,write_cache
+import json
+from utils import write_cache, read_cache          # <— import read_cache, NOT get_cache
 from config import settings
-
 
 class CORPUSClientError(Exception):
     """Base error for corpus I/O."""
 
 DEFAULT_ENCODING = "latin-1"
 log = logging.getLogger(__name__)
-cfg = settings.ref.corpus
 
-def _open_file(file_path: Union[str, Path], encoding: str = DEFAULT_ENCODING) -> pd.DataFrame:
+
+def extract_corpus(file_path: Union[str, Path],
+               encoding: str = DEFAULT_ENCODING) -> pd.DataFrame:
+    
     p = Path(file_path).expanduser().resolve()
     if not p.exists():
         raise FileNotFoundError(f"File not found: {p}")
 
     suffixes = p.suffixes
     is_gz = suffixes and suffixes[-1] == ".gz"
+    fmt = (suffixes[-2] if is_gz else suffixes[-1]).lstrip('.').lower()
+    if p and p.exists():
+        if fmt == "json":
+            df_like = pd.read_json(p,
+                                encoding=encoding,
+                                compression="gzip" if is_gz else None)
+            if isinstance(df_like, pd.Series) or (isinstance(df_like, pd.DataFrame)
+                                                and df_like.columns.size == 1):
+                data = df_like.iloc[0] if isinstance(df_like, pd.Series) else df_like.iloc[:, 0]
+                try:
+                    as_dict = json.loads(data) if isinstance(data, str) else data
+                    if isinstance(as_dict, dict) and "TIPLOCDATA" in as_dict:
+                        df = pd.json_normalize(as_dict["TIPLOCDATA"])
+                    elif isinstance(as_dict, dict) and len(as_dict) == 1:
+                        df = pd.json_normalize(next(iter(as_dict.values())))
+                    else:
+                        df = pd.json_normalize(as_dict)
+                except Exception:
+                    df = df_like 
+            else:
+                df = df_like
 
-    fmt = (suffixes[-2] if is_gz and len(suffixes) > 1 else suffixes[-1]).lstrip('.')
-
-
-    if fmt == "json":
-        if is_gz:
-            with gzip.open(p, "rb") as gz_fh:
-                text = gz_fh.read().decode(encoding)
+            return df
         else:
-            text = p.read_text(encoding=encoding)
-        data = json.loads(text)
-        if isinstance(data, dict) and "TIPLOCDATA" in data:
-            data = data["TIPLOCDATA"]
-        elif isinstance(data, dict) and len(data) == 1:
-            data = next(iter(data.values()))
-        return pd.json_normalize(data)
-    else:
-        if is_gz:
-            with gzip.open(p, "rb") as gz_fh:
-                raw = gz_fh.read()
-            buffer = io.BytesIO(raw)
-            return read_cache(buffer)
-        return read_cache(p)
-
-    
+            return read_cache(p)
+    else: 
+       FileNotFoundError(f"No file found at {p!r}")
 
 
-def get_corpus():
-    input_path: str | Path | None = cfg.input
-    if not input_path:
-        raise CORPUSClientError("No input archive specified in settings")
-
-    output_path: str | Path | None = cfg.cache
-    df = _open_file(input_path)
-    write_cache(output_path,df)
-    return df
+def get_corpus(cache_path: Union[str, Path],input_path = Union[str, Path]) -> pd.DataFrame:
+    if settings and settings.ref.corpus:
+        cache_path = cache_path or settings.ref.corpus.cache
+        input_path = input_path or settings.ref.corpus.input
+    return read_cache(cache_path,input_path,extract_corpus)

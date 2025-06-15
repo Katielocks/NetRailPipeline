@@ -11,10 +11,8 @@ import pandas as pd
 import numpy as np
 
 
-from utils import read_cache,write_cache
+from utils import read_cache,write_cache,get_cache
 from config import settings
-
-cfg = settings.ref.netrail_loc
 log = logging.getLogger(__name__)
 
 
@@ -61,7 +59,11 @@ def _parse_loc_records(file_path: Path) -> List[Dict[str, Any]]:
     
 
 
-def extract_location_codes(input_path: Union[str, Path] = cfg.input, cache_path: Union[str, Path] = cfg.cache) -> pd.DataFrame:
+def extract_location_codes(input_path: Union[str, Path] = None, cache_path: Union[str, Path] = None) -> pd.DataFrame:
+
+    if settings and settings.ref.netrail_loc:
+        input_path = settings.ref.netrail_loc.input
+        cache_path = settings.ref.netrail_loc.cache
 
     try:
         zip_path = Path(input_path).expanduser().resolve()
@@ -106,7 +108,12 @@ def extract_location_codes(input_path: Union[str, Path] = cfg.input, cache_path:
         write_cache(cache_path,df)
     return df
 
-def get_location_codes(input_path: Union[str, Path] = cfg.input, cache_path: Union[str, Path] = cfg.cache) -> pd.DataFrame:
+def get_location_codes(input_path: Union[str, Path] = None, cache_path: Union[str, Path] = None) -> pd.DataFrame:
+
+    if settings and settings.ref.netrail_loc:
+        input_path = settings.ref.netrail_loc.input
+        cache_path = settings.ref.netrail_loc.cache
+        
     if cache_path.exists():
         return read_cache(cache_path)
     else:

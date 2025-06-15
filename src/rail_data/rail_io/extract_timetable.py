@@ -8,11 +8,10 @@ from typing import List, Optional, Union
 import pandas as pd
 
 from config import settings
-from utils import write_cache
+from utils import write_cache,get_cache
 
 from cif_hop_extract import extract_CIF
 
-cfg = settings.timetable
 log = logging.getLogger(__name__)
 
 
@@ -46,11 +45,11 @@ def _get_timetable_periods(start, end):
 
 
 def extract_timetable(
-    input_path: Union[str, Path] = cfg.input,
-    cache_path: Union[str, Path] | None = cfg.cache,
+    start_time: dt.datetime = None,
+    end_time: dt.datetime = None,
     *,
-    start_time: Optional[dt.datetime] = None,
-    end_time: Optional[dt.datetime] = None,
+    input_path: Union[str, Path] = None,
+    cache_path: Union[str, Path] | None = None,
 ) -> pd.DataFrame:
     """Consolidate CIF timetable zips into a single **hops** :class:`~pandas.DataFrame`.
 
@@ -72,7 +71,10 @@ def extract_timetable(
     pandas.DataFrame
         Concatenated hops extracted from the selected CIF archives.
     """
-
+    if settings and settings.timetable:
+        input_path = input_path or settings.timetable.input
+        cache_path = cache_path or settings.timetable.cache
+        
     input_path = Path(input_path).expanduser().resolve()
     if not input_path.exists():
         raise FileNotFoundError(input_path)
@@ -99,7 +101,7 @@ def extract_timetable(
     if not zip_files:
         raise FileNotFoundError(
             "No CIF zips match the supplied date window "
-            f"{start_time:%Y-%m-%d}–{end_time:%Y-%m-%d} in {input_path}"
+            f"{start_time:%Y-%m-%d}-{end_time:%Y-%m-%d} in {input_path}"
         )
 
     log.info("Processing %d CIF zip file(s) from %s", len(zip_files), input_path)
@@ -114,3 +116,13 @@ def extract_timetable(
         write_cache(Path(cache_path), df)
 
     return df
+
+def get_timetable(cache_path: Union[str, Path] , input_path: Union[str, Path],start_time: dt.datetime = None, end_time: dt.datetime = None):
+    if cache_path and Path(cache_path).exists():
+        return get_cache(cache_path)
+    return extract_timetable(
+        start_time=start_time,
+        end_time=end_time,
+        input_path=input_path,
+        cache_path=cache_path,
+)

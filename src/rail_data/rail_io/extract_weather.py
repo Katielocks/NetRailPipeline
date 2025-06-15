@@ -1,19 +1,17 @@
 import datetime as dt
 from pathlib import Path
-from typing import Any, Mapping, Sequence, Tuple
+from typing import Any, Mapping, Sequence, Tuple,Union,DefaultDict
 
 import numpy as np
 import pandas as pd
 from pyproj import Transformer
 
 from midas_client import download_locations
-from utils import read_cache
+from utils import read_cache,write_cache
 from config import settings
-
-midas_cfg = settings.weather.midas
-_geospatial_cfg_default = settings.geospatial
-
-
+import logging
+ 
+log = logging.logger(__name__)
 
 _TRANSFORMER = Transformer.from_crs("EPSG:27700", "EPSG:4326", always_xy=True)
 
@@ -22,15 +20,46 @@ def _osgb_to_wgs84_vec(easting: np.ndarray, northing: np.ndarray) -> Tuple[np.nd
     """Vectorised conversion from OSGB‑36 (EPSG:27700) to WGS‑84 (EPSG:4326)."""
     return _TRANSFORMER.transform(easting, northing)
 
+def _get_centroids(geospatial:pd.DataFrame) -> pd.DataFrame:
+    if geospatial.empty:
+        raise ValueError("`geospatial` must contain at least one row.")
+
+    required_cols = {"location_code", "Easting", "Northing"}
+    missing = required_cols - set(geospatial.columns)
+    if missing:
+        raise KeyError(f"`geospatial` missing required columns: {sorted(missing)}")
+
+
+    if isinstance(start_date, str):
+        start_date = dt.date.fromisoformat(start_date)
+    if isinstance(end_date, str):
+        end_date = dt.date.fromisoformat(end_date)
+
+    if start_date > end_date:
+        raise ValueError("`start_date` must be on or before `end_date`.")
+
+    centroid = (
+        geospatial.groupby("location_code", as_index=False)[["Easting", "Northing"]]
+        .mean()
+    )
+
+    lon, lat = _osgb_to_wgs84_vec(
+        centroid["Easting"].to_numpy(),
+        centroid["Northing"].to_numpy(),
+    )
+
+    centroid = centroid.assign(Latitude=lat, Longitude=lon)
+    return centroid
+
 
 def extract_weather(
     geospatial: pd.DataFrame,
-    start_date: dt.datetime | str,
-    end_date: dt.datetime | str,
-    tables: dict[str, list[str]] | None = midas_cfg.tables,
+    years: range| list[str],
+    tables: dict[str, list[str]] | None,
     *,
-    cache_dir: str | Path | None = settings.weather.cache_dir,
-    cache_format: str | None = settings.weather.cache_format,
+    cache_dir: str | Path | None,
+    cache_format: str | None,
+    version: str = None,
 ) -> pd.DataFrame:
     
 
@@ -52,80 +81,94 @@ def extract_weather(
     pandas.DataFrame
         Centroids (one per ``location_code``) with added ``Latitude``/``Longitude``.
     """
+    if not isinstance(geospatial,pd.DataFrame):
+        raise ValueError("geospatial must be a pandas dataframe")
+    
+    if settings:
+        if settings.weather:
+            cache_dir = cache_dir or settings.weather.cache_dir
+            cache_format = cache_format or settings.weather.cache_format
+            if settings.weather.midas:
+                tables = tables or settings.weather.midas.tables
+                version = version or settings.weather.midas.version
 
-    if geospatial.empty:
-        raise ValueError("`geospatial` must contain at least one row.")
+    if not cache_dir or not cache_format:
+        raise ValueError("Must provide Valid Cache Directory and Cache Format")
+    centroid = _get_centroids(geospatial)
 
-    required_cols = {"location_code", "Easting", "Northing"}
-    missing = required_cols - set(geospatial.columns)
-    if missing:
-        raise KeyError(f"`geospatial` missing required columns: {sorted(missing)}")
-
-
-    if isinstance(start_date, str):
-        start_date = dt.date.fromisoformat(start_date)
-    if isinstance(end_date, str):
-        end_date = dt.date.fromisoformat(end_date)
-
-    if start_date > end_date:
-        raise ValueError("`start_date` must be on or before `end_date`.")
-
-    years = [str(y) for y in range(start_date.year, end_date.year + 1)]
-    centroid = (
-        geospatial.groupby("location_code", as_index=False)[["Easting", "Northing"]]
-        .mean()
-    )
-
-    lon, lat = _osgb_to_wgs84_vec(
-        centroid["Easting"].to_numpy(),
-        centroid["Northing"].to_numpy(),
-    )
-
-    centroid = centroid.assign(Latitude=lat, Longitude=lon)
-
-    download_locations(
+    station_map = download_locations(
         centroid[["location_code", "Latitude", "Longitude"]],
         years=years,
         tables=tables,
         out_dir=cache_dir,
         out_fmt=cache_format,
+        version=version
     )
 
-    return centroid
+    return station_map
 
 
 def get_weather(
+    geospatial: Union[pd.DataFrame,Union[Path,str]],
     start_date: dt.date | str,
     end_date: dt.date | str,
-    tables: Sequence[str] | Mapping[str, str] | None = None,
+    tables: dict[str, list[str]] | None = None,
     *,
+    version: str | None = None,
     cache_dir: str | Path | None = None,
     cache_format: str | None = None,
-    geospatial_cfg: Any = None,
 ) -> pd.DataFrame:
-    """High‑level convenience wrapper around :func:`extract_weather`.
+    
+    
+    years = [str(y) for y in range(start_date.year, end_date.year + 1)]
 
-    It loads the geospatial bucket cache referenced by *geospatial_cfg* (defaults to
-    :data:`settings.geospatial`) and returns the DataFrame produced by
-    :func:`extract_weather`.
-    """
+    station_map_path = cache_dir / f"station_map.json"
+    if station_map_path.exists():
+        existing_map = read_cache(station_map_path)
+    else:
+        existing_map = pd.DataFrame()
 
-    cfg = geospatial_cfg or _geospatial_cfg_default
+    missing_caches: dict[str, list[int]] = DefaultDict(list)
+    if cache_dir and Path(cache_dir).exists():
+        cache_dir = Path(cache_dir)
+        for tbl in tables:
+            for yr in years:
+                if not (cache_dir / f"{tbl}_{yr}.{cache_format}").exists():
+                    missing_caches[tbl].append(yr)
+    
+    if not missing_caches:
+        log.info("All weather files available in cache, if looking to redownload, call extract_weather")
+        return None
 
-    if cfg.cache is None:
-        raise ValueError("`geospatial_cfg.cache` is not set.")
-    if not cfg.cache.exists():
-        raise FileNotFoundError(f"Geo cache not found at {cfg.cache}")
+    if settings and settings.geospatial:
+        geospatial = geospatial or settings.geospatial.cache
+    if isinstance(geospatial,(Path,str)):   
+        geospatial = read_cache(geospatial)
+    elif geospatial is None:
+        raise ValueError("You must import the geospatial dataframe or provide a path to the cache")
 
-    geospatial = read_cache(cfg.cache)
 
-    return extract_weather(
-        geospatial,
-        start_date,
-        end_date,
-        tables=tables,
-        cache_dir=cache_dir,
-        cache_format=cache_format,
+    station_maps: list[pd.DataFrame] = []
+    if not existing_map.empty:
+        station_maps.append(existing_map)
+
+    for tbl, yrs in missing_caches.items():
+        if yrs:
+            station_maps.append(
+                extract_weather(
+                    geospatial,
+                    yrs,
+                    {tbl: tables[tbl]},
+                    cache_dir=cache_dir,
+                    cache_format=cache_format,
+                    version=version
+                )
+            )
+    combined = (
+        pd.concat(station_maps, ignore_index=True)
+        .drop_duplicates(subset=["loc_id", "year"], keep="last")
+        .sort_values(["loc_id", "year"])
+        .reset_index(drop=True)
     )
-
+    write_cache(station_map_path,combined)
 
