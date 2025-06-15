@@ -37,7 +37,16 @@ def _as_datetime(val: dt.date | dt.datetime | str) -> dt.datetime:
 
 
 def extract_datasets(start_date: dt.date | dt.datetime | str, end_date: dt.date | dt.datetime | str) -> None:
-    """Extract all datasets defined in :mod:`rail_io` between *start_date* and *end_date*.
+    """Extract all datasets within the given date range.
+
+    Parameters
+    ----------
+    start_date : datetime.date | datetime.datetime | str
+        Inclusive start of the range. If a string is provided it must be ISO
+        formatted.
+    end_date : datetime.date | datetime.datetime | str
+        Inclusive end of the range. If a string is provided it must be ISO
+        formatted.
 
     Existing caches will be overwritten.
     """
@@ -96,9 +105,16 @@ def extract_datasets(start_date: dt.date | dt.datetime | str, end_date: dt.date 
 
 
 def get_datasets(start_date: dt.date | dt.datetime | str, end_date: dt.date | dt.datetime | str) -> None:
-    """Ensure all datasets between *start_date* and *end_date* are available.
+    """Ensure all datasets between ``start_date`` and ``end_date`` are available.
 
-    Missing caches will be populated, existing ones are preserved.
+    Parameters
+    ----------
+    start_date : datetime.date | datetime.datetime | str
+        Inclusive start of the range. Strings should be ISO formatted.
+    end_date : datetime.date | datetime.datetime | str
+        Inclusive end of the range. Strings should be ISO formatted.
+
+    Missing caches will be populated and existing ones are preserved.
     """
     start_dt = _as_datetime(start_date)
     end_dt = _as_datetime(end_date)

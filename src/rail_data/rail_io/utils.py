@@ -43,6 +43,19 @@ def _detect_format_and_compression(path: Path) -> tuple[str, str | None]:
 
 
 def read_cache(cache_path: Union[str, Path]) -> pd.DataFrame:
+    """Load a cached :class:`pandas.DataFrame` from *cache_path*.
+
+    Parameters
+    ----------
+    cache_path : str | Path
+        Path to the cached file.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The loaded dataset.
+    """
+     
     cache_path = Path(cache_path)
     if not cache_path.exists():
         raise FileNotFoundError(f"Cache file '{cache_path}' does not exist.")
@@ -73,6 +86,20 @@ def read_cache(cache_path: Union[str, Path]) -> pd.DataFrame:
     return df
 
 def write_cache(cache_path: Union[str, Path], df: pd.DataFrame, mdir: bool = True,comp = None) -> None:
+    """Write *df* to *cache_path* in the appropriate format.
+
+    Parameters
+    ----------
+    cache_path : str | Path
+        Destination file path for the cache.
+    df : pandas.DataFrame
+        Data to be cached.
+    mdir : bool, optional
+        Create parent directories when ``True`` (default).
+    comp : str | None, optional
+        Compression method passed through to pandas writers.
+    """
+
     cache_path = Path(cache_path)
     if not isinstance(df, pd.DataFrame):
         raise TypeError(
@@ -115,7 +142,23 @@ def get_cache(
 
     if not cache_path.parent.is_dir():
         raise ValueError(f"{cache_path.parent!r} is not a directory")
+    """Return a DataFrame from *cache_path* or generate it.
 
+    Parameters
+    ----------
+    cache_path : str | Path
+        Path to the cache file to read.
+    input_path : str | Path | None, optional
+        Path to the raw input file used when generating the cache.
+    gen_func : Callable | None, optional
+        Function that will be called as ``gen_func(input_path, cache_path)`` to
+        create the cache when it does not exist.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The loaded or newly generated dataset.
+    """
     candidates = [
         f".{p.suffix}"
         for p in cache_path.parent.iterdir()
