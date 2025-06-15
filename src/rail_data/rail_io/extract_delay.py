@@ -39,16 +39,17 @@ def _check_folder(
     return True
 
 def _business_year_start(
-    dt: dt.datetime,
+    when: dt.datetime,
     *,
     year_start: tuple[int, int] = _YEAR_START,
 ) -> dt.datetime:
+    """Return the start of the business year for ``when``."""
     start_month, start_day = year_start
 
-    if (dt.month, dt.day) < (start_month, start_day):
-        dt_year = dt.year - 1
+    if (when.month, when.day) < (start_month, start_day):
+        dt_year = when.year - 1
     else:
-        dt_year = dt.year
+        dt_year = when.year
 
     return dt.datetime(dt_year, start_month, start_day)
 

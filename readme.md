@@ -4,7 +4,7 @@ NetRail-Incident-Analysis is a prototype refactoring of a older rail incident-de
 
 At the current state, the public repo contains `rail_io`, subpackage containing code for importing from a range of sources. 
 ## src/Rail_data/Rail_io
-At the current state, the public repo contains `rail_io` subpackage containing code for importing from a range of sources.
+  
 ## See Also
 
 - [`midas_client`](https://github.com/Katielocks/uk-midas-client)  
