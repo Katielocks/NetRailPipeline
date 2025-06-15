@@ -7,7 +7,6 @@ import zipfile
 from pathlib import Path
 from typing import Final, Mapping
 import pandas as pd
-from config import settings
 from utils import write_cache
 
 _COL_NAMES: Final[list[str]] = [

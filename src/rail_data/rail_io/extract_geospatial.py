@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 from pathlib import Path
-from typing import Any, Dict, List, Callable, Union
+from typing import Union
 
 import pandas as pd
 import geopandas as gpd

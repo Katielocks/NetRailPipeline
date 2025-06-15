@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from datetime import timedelta
-from typing import Any, Dict,Callable
 from session import Session
-from pathlib import Path
 import pandas as pd
 import logging
 from config import settings

@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import logging
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Union
 
 import pandas as pd
 

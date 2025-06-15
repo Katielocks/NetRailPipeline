@@ -1,6 +1,6 @@
 import datetime as dt
 from pathlib import Path
-from typing import Any, Mapping, Sequence, Tuple,Union,DefaultDict
+from typing import Tuple, Union, DefaultDict
 
 import numpy as np
 import pandas as pd
@@ -28,15 +28,6 @@ def _get_centroids(geospatial:pd.DataFrame) -> pd.DataFrame:
     missing = required_cols - set(geospatial.columns)
     if missing:
         raise KeyError(f"`geospatial` missing required columns: {sorted(missing)}")
-
-
-    if isinstance(start_date, str):
-        start_date = dt.date.fromisoformat(start_date)
-    if isinstance(end_date, str):
-        end_date = dt.date.fromisoformat(end_date)
-
-    if start_date > end_date:
-        raise ValueError("`start_date` must be on or before `end_date`.")
 
     centroid = (
         geospatial.groupby("location_code", as_index=False)[["Easting", "Northing"]]
@@ -146,7 +137,7 @@ def get_weather(
     
     years = [str(y) for y in range(start_date.year, end_date.year + 1)]
 
-    station_map_path = cache_dir / f"station_map.json"
+    station_map_path = cache_dir / "station_map.json"
     if station_map_path.exists():
         existing_map = read_cache(station_map_path)
     else:

@@ -3,7 +3,7 @@ from typing import Union
 import logging
 import pandas as pd
 import json
-from utils import write_cache, read_cache,get_cache       
+from utils import write_cache,read_cache,get_cache       
 from config import settings
 
 class CORPUSClientError(Exception):
@@ -14,7 +14,8 @@ log = logging.getLogger(__name__)
 
 
 def extract_corpus(file_path: Union[str, Path],
-               encoding: str = DEFAULT_ENCODING) -> pd.DataFrame:
+                   cache_path: Union[str, Path] = None,
+                   encoding: str = DEFAULT_ENCODING) -> pd.DataFrame:
     """Load a CORPUS file into a :class:`pandas.DataFrame`.
 
     Parameters
@@ -58,10 +59,10 @@ def extract_corpus(file_path: Union[str, Path],
                     df = df_like 
             else:
                 df = df_like
-
-            return df
         else:
-            return read_cache(p)
+            df =  read_cache(p)
+    if cache_path and Path(cache_path).exists():
+                    write_cache(cache_path,df)
     else: 
        FileNotFoundError(f"No file found at {p!r}")
 

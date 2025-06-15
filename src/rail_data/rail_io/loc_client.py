@@ -5,13 +5,13 @@ import logging
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Any, Dict, List,Callable,Union
+from typing import Any, Dict, List,Union
 
 import pandas as pd
 import numpy as np
 
 
-from utils import read_cache,write_cache,get_cache
+from utils import read_cache, write_cache
 from config import settings
 log = logging.getLogger(__name__)
 

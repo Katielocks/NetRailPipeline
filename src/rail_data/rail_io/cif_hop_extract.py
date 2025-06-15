@@ -21,14 +21,10 @@ __all__ = [
     "build_tiploc_maps",
     "iter_hops",
     "write_hops",
-    "get_timetable_df",
-    "TimetableError",
-    "UnsupportedCacheFormatError",
-    "UnsupportedOutputFormatError",
-    "ZipFileNotFoundError",
+    "extract_CIF",
 ]
 
-cfg = settings.timetable
+
 
 log = logging.getLogger(__name__)
 DEFAULT_ENCODING = "latin-1"

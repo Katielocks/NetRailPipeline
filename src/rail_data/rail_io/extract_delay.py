@@ -4,8 +4,7 @@ import math
 import logging
 import datetime as dt
 from pathlib import Path
-from typing import Final, MutableMapping,Union,Dict,Set,List
-import pandas as pd
+from typing import Final, MutableMapping, Union, Dict, Set, List
 from config import settings
 
 from delay_processer import process_zipfile

@@ -4,8 +4,7 @@ NetRail-Incident-Analysis is a prototype refactoring of a older rail incident-de
 
 At the current state, the public repo contains `rail_io`, subpackage containing code for importing from a range of sources. 
 ## src/Rail_data/Rail_io
-This subpackage provides a prototype foundation for importing and extending rail delay analytics workflows—particularly useful if you’re working with similar models or need some examples of wrangling network rail data, handling data formats,`CIF` decoding etc.
-
+At the current state, the public repo contains `rail_io` subpackage containing code for importing from a range of sources.
 ## See Also
 
 - [`midas_client`](https://github.com/Katielocks/uk-midas-client)  
