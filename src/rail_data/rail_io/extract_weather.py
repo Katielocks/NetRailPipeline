@@ -11,7 +11,7 @@ from utils import read_cache,write_cache
 from config import settings
 import logging
  
-log = logging.logger(__name__)
+log = logging.getLogger(__name__)
 
 _TRANSFORMER = Transformer.from_crs("EPSG:27700", "EPSG:4326", always_xy=True)
 
@@ -171,4 +171,5 @@ def get_weather(
         .reset_index(drop=True)
     )
     write_cache(station_map_path,combined)
+    return combined
 

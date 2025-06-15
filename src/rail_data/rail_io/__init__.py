@@ -1,6 +1,6 @@
 from .config import settings
-from .corpus_client import extract_corpus,get_corpus
-from .extract_weather import extract_weather,get_weather
+from .corpus_client import extract_corpus, get_corpus
+from .extract_weather import extract_weather, get_weather
 from .extract_geospatial import extract_geospatial, get_geospatial
 from .extract_delay import extract_delay_dataset, get_delay_dataset
 from .extract_timetable import extract_timetable, get_timetable

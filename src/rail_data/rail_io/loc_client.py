@@ -114,7 +114,7 @@ def get_location_codes(input_path: Union[str, Path] = None, cache_path: Union[st
         input_path = settings.ref.netrail_loc.input
         cache_path = settings.ref.netrail_loc.cache
         
-    if cache_path.exists():
+    if cache_path and cache_path.exists():
         return read_cache(cache_path)
     else:
         return extract_location_codes(input_path,cache_path)

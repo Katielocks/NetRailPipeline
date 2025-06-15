@@ -30,7 +30,7 @@ def extract_geospatial( location_code: str,
                               max_distance_m=max_distance_m
                               )
     if cache_path:
-        write_cache(geospatial_buckets, cache_path)
+        write_cache(cache_path,geospatial_buckets)
     return geospatial_buckets
 
 def get_geospatial(
@@ -63,7 +63,7 @@ def get_geospatial(
         if track.crs is None:
             track.set_crs("EPSG:27700", inplace=True)
     loc_df = get_cache(location_cache,location_input,extract_location_codes)
-    extract_geospatial( location_code = location_code,
+    return extract_geospatial( location_code = location_code,
                         seg_len_mi = seg_len_mi,
                         max_distance_m = max_distance_m,
                         cache_path = cache_path,

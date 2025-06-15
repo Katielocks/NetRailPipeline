@@ -80,7 +80,6 @@ _PERIOD_ZIP_RE: Final[re.Pattern[str]] = re.compile(
 
 
 log = logging.getLogger(__name__)
-cfg  = settings.delay
 
 def _swap_columns(df: pd.DataFrame, col1: str, col2: str) -> pd.DataFrame:
     cols = list(df.columns)
@@ -137,7 +136,7 @@ def _extract_first_csv(zip_path: Path, dest_dir: Path, fmt: str, period: str, *,
             dest.parent.mkdir(parents=True, exist_ok=True)
             with zf.open(member) as src:
                 df = _process_delay_dataframe(src)
-            write_cache(dest_dir,df)
+            write_cache(dest,df)
             log.info(" %s to %s", zip_path.name, dest.relative_to(dest_dir.parent))
             return
     log.warning(" No CSV found inside %s – skipped", zip_path.name)

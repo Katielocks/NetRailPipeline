@@ -3,7 +3,7 @@ from typing import Union
 import logging
 import pandas as pd
 import json
-from utils import write_cache, read_cache          # <— import read_cache, NOT get_cache
+from utils import write_cache, read_cache,get_cache       
 from config import settings
 
 class CORPUSClientError(Exception):
@@ -55,4 +55,4 @@ def get_corpus(cache_path: Union[str, Path],input_path = Union[str, Path]) -> pd
     if settings and settings.ref.corpus:
         cache_path = cache_path or settings.ref.corpus.cache
         input_path = input_path or settings.ref.corpus.input
-    return read_cache(cache_path,input_path,extract_corpus)
+    return get_cache(cache_path,input_path,extract_corpus)

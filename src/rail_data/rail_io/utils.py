@@ -104,12 +104,6 @@ def write_cache(cache_path: Union[str, Path], df: pd.DataFrame, mdir: bool = Tru
             f"Failed to write DataFrame to '{cache_path}' as {cache_fmt}: {e}"
         ) from e
 
-from pathlib import Path
-from typing import Union, Callable
-import warnings
-import logging
-
-log = logging.getLogger(__name__)
 
 def get_cache(
     cache_path: Union[str, Path],
