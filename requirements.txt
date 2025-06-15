@@ -1,5 +1,4 @@
 geopandas==1.1.0
-loc2elr==0.4.1
 numpy==2.3.0
 pandas==2.3.0
 pydantic==2.11.7
