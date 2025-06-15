@@ -29,7 +29,7 @@ def extract_geospatial( location_code: str,
         Column in ``loc_df`` identifying the location code to use when linking
         to the ELR track data.
     seg_len_mi
-        Length of track segments to extract, in miles.
+        Length of track segments in miles.
     max_distance_m
         Maximum distance from the location to include, in metres.
     cache_path

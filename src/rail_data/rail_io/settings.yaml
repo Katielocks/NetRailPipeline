@@ -3,10 +3,7 @@ weather:
   midas:
     version: "202407"
     tables:
-      RH: []
       TD: []
-      WH: []
-      WM: []
   cache_dir: "data/raw/archive/weather"
   cache_format: "csv"
 timetable:

@@ -4,7 +4,7 @@ import logging
 import pandas as pd
 import json
 from .utils import write_cache,read_cache,get_cache       
-from config import settings
+from .config import settings
 
 class CORPUSClientError(Exception):
     """Base error for corpus I/O."""

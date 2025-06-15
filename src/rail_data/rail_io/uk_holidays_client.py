@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from session import Session
 import pandas as pd
 import logging
+from .session import Session
 from .config import settings
 from .utils import write_cache
 

@@ -1,11 +1,11 @@
 from .config import settings
 from .corpus_client import extract_corpus, get_corpus
-from .extract_weather import extract_weather, get_weather
-from .extract_geospatial import extract_geospatial, get_geospatial
-from .extract_delay import extract_delay_dataset, get_delay_dataset
-from .extract_timetable import extract_timetable, get_timetable
-from .loc_client import extract_location_codes, get_location_codes
-from .nationalrail_client import NationalRailSession as NatRaSes
+from .weather_extractor import extract_weather, get_weather
+from .geospatial_extractor import extract_geospatial, get_geospatial
+from .delay_extractor import extract_delay_dataset, get_delay_dataset
+from .timetable_extractor import extract_timetable, get_timetable
+from .location_client import extract_location_codes, get_location_codes
+from .national_rail_client import NationalRailSession as NatRaSes
 from .track_client import get_track
 from .uk_holidays_client import fetch_public_holidays
 from .utils import read_cache, write_cache, get_cache
