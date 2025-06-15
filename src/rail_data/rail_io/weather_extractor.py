@@ -7,7 +7,7 @@ import pandas as pd
 from pyproj import Transformer
 import logging
 
-from .midas_client import download_locations
+from midas_client import download_locations
 from .utils import read_cache,write_cache
 from .config import settings
 
