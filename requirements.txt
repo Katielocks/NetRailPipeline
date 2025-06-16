@@ -9,6 +9,6 @@ Requests==2.32.4
 setuptools==80.8.0
 statsmodels==0.14.4
 tqdm==4.67.1
-uk-midas-clientc>=0.56,
+uk-midas-client
 urllib3==2.4.0
 
