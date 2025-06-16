@@ -13,7 +13,7 @@ if requirements_path.exists():
     ]
 
 setuptools.setup(
-    name="uk-midas-client",                    
+    name="NetRailPipeline",                    
     use_scm_version=True,
     setup_requires=["setuptools-scm"],                                                      
     author="Katherine Whitelock",
