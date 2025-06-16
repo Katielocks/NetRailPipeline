@@ -1,7 +1,11 @@
-import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "rail_data", "rail_io"))
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
 import pytest
-from session import Session, CredentialsError
+
+from rail_data.rail_io.session import Session, CredentialsError
 
 class DummyRequestSession:
     def __init__(self):

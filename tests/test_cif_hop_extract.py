@@ -1,12 +1,12 @@
 import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "rail_data", "rail_io"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from pathlib import Path
 import zipfile
 
 import pandas as pd
 
-import cif_hop_extractor as cif
+from rail_data.rail_io import cif_hop_extractor as cif
 
 
 def make_line(prefix: str, fields: dict[tuple[int, int], str]) -> str:

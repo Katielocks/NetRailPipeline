@@ -1,8 +1,10 @@
+import sys
 import zipfile
 from pathlib import Path
 import sys,os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "rail_data", "rail_io"))
-import track_client
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from rail_data.rail_io import track_client
 
 import pytest
 

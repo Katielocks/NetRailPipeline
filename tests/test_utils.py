@@ -1,9 +1,12 @@
-import sys, os;
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
 import pandas as pd
 import pytest
-from pathlib import Path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "rail_data", "rail_io"))
-import utils
+
+from rail_data.rail_io import utils
 
 
 def test_detect_format_simple():

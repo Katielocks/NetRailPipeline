@@ -2,10 +2,13 @@ import sys, os
 from pathlib import Path
 import datetime as dt
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "rail_data", "rail_io"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from delay_extractor import _check_folder, _business_year_start, _build_business_period_map
-
+from rail_data.rail_io.delay_extractor import (
+    _check_folder,
+    _business_year_start,
+    _build_business_period_map,
+)
 
 def test_check_folder(tmp_path):
     p = tmp_path / "sub"

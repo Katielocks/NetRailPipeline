@@ -1,9 +1,10 @@
-import sys, os
+import sys
 from pathlib import Path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "rail_data", "rail_io"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-import national_rail_client as nr
-from session import Session
+from rail_data.rail_io import national_rail_client as nr
+from rail_data.rail_io.session import Session
+
 
 class DummyRequestSession:
     def __init__(self):

@@ -1,7 +1,8 @@
-import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "rail_data", "rail_io"))
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from config import load_settings
+from rail_data.rail_io.config import load_settings
 
 
 def test_load_settings_defaults():
