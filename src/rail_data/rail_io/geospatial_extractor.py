@@ -6,7 +6,7 @@ from typing import Union
 
 import pandas as pd
 import geopandas as gpd
-from loc2elr import link_loc_to_elr
+from .loc2elr import link_loc_to_elr
 
 from .location_client import extract_location_codes
 from .track_client import get_track
