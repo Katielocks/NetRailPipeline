@@ -10,8 +10,7 @@ timetable:
   api: ""
   url: ""
   input: "data/raw/incoming/timetable"
-  cache: "data/raw/archive/timetable"
-  cache_format: "csv"
+  cache: "data/raw/archive/timetable.csv"
 delay:
   api: ""
   url: ""
@@ -35,7 +34,7 @@ ref:
   corpus:
     api: ""
     url: ""
-    input: "data/raw/incoming/corpus.zip"
+    input: "data/raw/incoming/CORPUS.json.gz"
     cache: "data/raw/archive/corpus.csv"
   bank_holiday:
     api: ""

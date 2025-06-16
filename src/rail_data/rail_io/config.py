@@ -10,9 +10,8 @@ from pydantic import (
     ValidationError,
     field_validator,     
     RootModel,
-    ConfigDict,           
+    ConfigDict,          
 )
-
 
 
 class MidasCfg(BaseModel):
@@ -52,7 +51,6 @@ class RefCfg(BaseModel):
     model_config = ConfigDict(frozen=True)
 
 
-
 class RefCfgMap(RootModel[Dict[str, RefCfg]]):
     model_config = ConfigDict(frozen=True)
 
@@ -76,6 +74,15 @@ class RefCfgMap(RootModel[Dict[str, RefCfg]]):
         return self._data.items()
 
 
+class RefDirCfgMap(RefCfg):
+    cache_format: Optional[str] = Field(default=None, alias="cache_format")
+
+    model_config = ConfigDict(
+        frozen=True,
+        validate_by_name=True,    
+    )
+
+
 class GeospatialCfg(RefCfg):
     loc_id_field: str = Field(alias="location_code")
     max_distance_m: int = Field(alias="max_distance_m")
@@ -83,14 +90,14 @@ class GeospatialCfg(RefCfg):
 
     model_config = ConfigDict(
         frozen=True,
-        validate_by_name=True,     # keep alias population behaviour
+        validate_by_name=True,    
     )
 
 
 class Settings(BaseModel):
     weather: WeatherSettings
     timetable: RefCfg
-    delay: RefCfg
+    delay: RefDirCfgMap
     geospatial: GeospatialCfg
     ref: RefCfgMap
 
@@ -113,5 +120,6 @@ def load_settings(path: str | Path | None = None) -> Settings:
     except ValidationError as exc:
         raise SystemExit(exc.json(indent=2))
     
+
 
 settings: Settings = load_settings()

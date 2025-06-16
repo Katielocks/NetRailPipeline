@@ -43,7 +43,6 @@ def extract_geospatial( location_code: str,
     pandas.DataFrame
         DataFrame describing each extracted geospatial bucket and location id mapping.
     """
-
     geospatial_buckets = link_loc_to_elr(loc_df,
                               track_shp,
                               loc_col=location_code,

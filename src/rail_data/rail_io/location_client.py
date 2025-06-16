@@ -24,8 +24,8 @@ _FIELDS = [
     "LOC_NAME",
     "START_DATE",
     "END_DATE",
-    "OS_EASTING",
-    "OS_NORTHING",
+    "EASTING",
+    "NORTHING",
     "TIMING_POINT_TYPE",
     "ZONE",
     "STANOX",
@@ -108,12 +108,12 @@ def extract_location_codes(input_path: Union[str, Path] = None, cache_path: Unio
 
     try:
         df = pd.DataFrame(loc_records)
-        df["OS_EASTING"] = pd.to_numeric(df["OS_EASTING"], errors="coerce")
-        df["OS_NORTHING"] = pd.to_numeric(df["OS_NORTHING"], errors="coerce")
+        df["EASTING"] = pd.to_numeric(df["EASTING"], errors="coerce")
+        df["NORTHING"] = pd.to_numeric(df["NORTHING"], errors="coerce")
         df["STANOX"] = df["STANOX"].replace(r"^\s*$", np.nan, regex=True)
 
         df = df[df["STANOX"].notna()]
-        df = df[df["OS_EASTING"].notna() & df["OS_EASTING"].ne(0) & df["OS_EASTING"].ne(999_999)]
+        df = df[df["EASTING"].notna() & df["EASTING"].ne(0) & df["EASTING"].ne(999_999)]
     except Exception as exc:
         raise BplanError(f"Error processing BPLAN DataFrame: {exc}") from exc
 

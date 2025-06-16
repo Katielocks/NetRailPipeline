@@ -69,6 +69,11 @@ _DATE_COLS: Final[list[str]] = [
     "PLANNED_ORIGIN_WTT_DATETIME",
     "EVENT_DATETIME",
 ]
+_DROP_COLS: Final[list[str]] = [
+    "INCIDENT_RESPONSIBLE_TRAIN",
+    "INCIDENT_RESP_TRAIN",
+    "REACT_TRAIN",
+]
 
 _PERIOD_ZIP_RE: Final[re.Pattern[str]] = re.compile(
     r"(?i).*?"
@@ -110,10 +115,14 @@ def _infer_datetime_format(sample: pd.Series) -> str:
 
 
 def _process_delay_dataframe(handle) -> pd.DataFrame: 
+
     df = (
-        pd.read_csv(handle, low_memory=False)
-        .rename(columns=str.upper)
-        .iloc[:, :37] 
+    pd.read_csv(handle, low_memory=False)
+      .rename(columns=str.upper)
+      .pipe(lambda d: d.drop(
+          columns=[c for c in _DROP_COLS if c in d.columns],
+      ))
+      .iloc[:, :37]
     )
     df = _swap_columns(df, "PLANNED_ORIG_GBTT_DATETIME_AFF", "PLANNED_ORIG_WTT_DATETIME_AFF")
     df.columns = _COL_NAMES
@@ -122,6 +131,7 @@ def _process_delay_dataframe(handle) -> pd.DataFrame:
     date_format = _infer_datetime_format(df[_DATE_COLS[1]])
     for col in _DATE_COLS:
         df = df[df[col].notna()]
+        print(df[ _DATE_COLS])
         df[col] = pd.to_datetime(df[col], format=date_format)
 
     return df
@@ -183,7 +193,7 @@ def process_zipfile(
     business_periods: Mapping[str, set[str]] | None = None,
     import_all: bool = False,
 ) -> int:
-    if _handle_period_zip(zip_path, output_root, business_periods=business_periods, import_all=import_all):
+    if _handle_period_zip(zip_path, output_root,output_format, business_periods=business_periods, import_all=import_all):
         return 1
 
     written = 0

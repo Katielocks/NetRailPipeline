@@ -17,12 +17,13 @@ def fetch_public_holidays():
     output_path = cfg.cache
     try:
         with Session(token="dummy_token") as ses:
-            txt = ses.get_json(
+            data = ses.get_json(
                 url
             )
     except Exception as exc:
         raise UKHolidaysClientError(str(exc)) from exc
-    df = pd.read_json(txt)
+    events = data.get("england-and-wales", {}).get("events", [])
+    df = pd.json_normalize(events)
     if output_path:
         write_cache(output_path,df)
         return df

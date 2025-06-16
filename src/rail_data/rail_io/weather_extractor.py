@@ -24,19 +24,21 @@ def _get_centroids(geospatial:pd.DataFrame) -> pd.DataFrame:
     if geospatial.empty:
         raise ValueError("`geospatial` must contain at least one row.")
 
-    required_cols = {"location_code", "Easting", "Northing"}
+    required_cols = {"EASTING", "NORTHING"}
     missing = required_cols - set(geospatial.columns)
     if missing:
         raise KeyError(f"`geospatial` missing required columns: {sorted(missing)}")
+    
+    key = geospatial.columns[0]
 
     centroid = (
-        geospatial.groupby("location_code", as_index=False)[["Easting", "Northing"]]
+        geospatial.groupby(key, as_index=False)[["EASTING", "NORTHING"]]
         .mean()
     )
 
     lon, lat = _osgb_to_wgs84_vec(
-        centroid["Easting"].to_numpy(),
-        centroid["Northing"].to_numpy(),
+        centroid["EASTING"].to_numpy(),
+        centroid["NORTHING"].to_numpy(),
     )
 
     centroid = centroid.assign(Latitude=lat, Longitude=lon)
@@ -88,12 +90,11 @@ def extract_weather(
     centroid = _get_centroids(geospatial)
 
     station_map = download_locations(
-        centroid[["location_code", "Latitude", "Longitude"]],
+        centroid,
         years=years,
         tables=tables,
         out_dir=cache_dir,
         out_fmt=cache_format,
-        version=version
     )
 
     return station_map
@@ -134,8 +135,8 @@ def get_weather(
     pandas.DataFrame
         Combined station mapping for all requested tables/years.
     """
-    
     years = [str(y) for y in range(start_date.year, end_date.year + 1)]
+    print(years)
 
     station_map_path = cache_dir / "station_map.json"
     if station_map_path.exists():
@@ -144,18 +145,19 @@ def get_weather(
         existing_map = pd.DataFrame()
 
     missing_caches: dict[str, list[int]] = DefaultDict(list)
-    if cache_dir and Path(cache_dir).exists():
+    if cache_dir:
         cache_dir = Path(cache_dir)
         for tbl in tables:
             for yr in years:
+                print(yr)
+                print(cache_dir / f"{tbl}_{yr}.{cache_format}")
                 if not (cache_dir / f"{tbl}_{yr}.{cache_format}").exists():
                     missing_caches[tbl].append(yr)
     
     if not missing_caches:
         log.info("All weather files available in cache, if looking to redownload, call extract_weather")
         return None
-
-    if settings and settings.geospatial:
+    if settings and settings.geospatial and not isinstance(geospatial,pd.DataFrame):
         geospatial = geospatial or settings.geospatial.cache
     if isinstance(geospatial,(Path,str)):   
         geospatial = read_cache(geospatial)

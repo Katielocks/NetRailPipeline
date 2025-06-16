@@ -104,8 +104,7 @@ def _prune_business_period_map(
                 _check_folder(
                     part_folder,
                     file_ext=file_ext,
-                    required_parts=required_parts,
-                    error=False
+                    required_parts=required_parts
                 )
                 is True
             )
@@ -172,8 +171,7 @@ def extract_delay_dataset(
             out_dir,
             out_format,
             overwrite=overwrite,
-            business_periods=business_period,
-            import_all=import_all,
+            business_periods=business_period
         )
 
 def get_delay_dataset(
@@ -208,7 +206,8 @@ def get_delay_dataset(
     business_period_parts: MutableMapping[str, set[str]] = _build_business_period_map(
         start_date,
         end_date,
-        _YEAR_START,
+        year_start=_YEAR_START,
+        part_duration=_PART_DURATION
     )
 
     business_period_parts = _prune_business_period_map(business_period_parts, out_dir, "csv", {"delay"})

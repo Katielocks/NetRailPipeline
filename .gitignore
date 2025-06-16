@@ -4,6 +4,7 @@ data/
 *.zip
 *.pyc
 .env
+src/rail_data/test.py
 src/rail_data/transforms/
 src/rail_data/main.py
 src/rail_data/utils.py
