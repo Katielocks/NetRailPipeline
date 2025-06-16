@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import logging
 from pathlib import Path
 from typing import Union
 
@@ -13,6 +14,7 @@ from .track_client import get_track
 from .utils import write_cache, get_cache
 from .config import settings
 
+log = logging.getLogger(__name__)
 
 def extract_geospatial( location_code: str,
                     seg_len_mi : int,
@@ -43,14 +45,17 @@ def extract_geospatial( location_code: str,
     pandas.DataFrame
         DataFrame describing each extracted geospatial bucket and location id mapping.
     """
+    log.info("Building geospatial buckets around %s", location_code)
     geospatial_buckets = link_loc_to_elr(loc_df,
                               track_shp,
                               loc_col=location_code,
                               seg_length=seg_len_mi,
                               max_distance_m=max_distance_m
                               )
+    
     if cache_path:
-        write_cache(cache_path,geospatial_buckets)
+        write_cache(cache_path, geospatial_buckets)
+        log.info("Wrote geospatial cache to %s", cache_path)
     return geospatial_buckets
 
 def get_geospatial(
@@ -102,6 +107,7 @@ def get_geospatial(
             location_input = location_input or settings.ref.netrail_loc.input
 
     if cache_path and Path(cache_path).exists():
+        log.info("Loading geospatial data from %s", cache_path)
         return get_cache(cache_path)
     
     with get_track(track_input) as track_path:
@@ -109,10 +115,13 @@ def get_geospatial(
         if track.crs is None:
             track.set_crs("EPSG:27700", inplace=True)
     loc_df = get_cache(location_cache,location_input,extract_location_codes)
-    return extract_geospatial( location_code = location_code,
-                        seg_len_mi = seg_len_mi,
-                        max_distance_m = max_distance_m,
-                        cache_path = cache_path,
-                        loc_df = loc_df,
-                        track_shp = track
-                    )
+    result = extract_geospatial(
+        location_code=location_code,
+        seg_len_mi=seg_len_mi,
+        max_distance_m=max_distance_m,
+        cache_path=cache_path,
+        loc_df=loc_df,
+        track_shp=track,
+    )
+    log.info("Generated %d geospatial buckets", len(result))
+    return result

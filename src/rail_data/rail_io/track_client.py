@@ -21,6 +21,7 @@ class ZipFileNotFoundError(ELRClientError):
 @contextmanager
 def _open_zip(input_path: Union[str, Path]):
     zip_path = Path(input_path).expanduser().resolve()
+    log.info("Extracting track model from %s", zip_path)
     if not zip_path.exists():
         raise ZipFileNotFoundError(f"Local Track Model not found at {zip_path}")
     if zip_path.suffix.lower() == ".zip":
@@ -68,7 +69,7 @@ def get_track(input_path: Union[str, Path]):
     used as a context manager.
     """
     input_path = Path(input_path).expanduser().resolve()
-
+    log.info("Opening track data from %s", input_path)
     if settings and settings.ref.track_model:
         input_path = input_path or settings.ref.track_model.input
 

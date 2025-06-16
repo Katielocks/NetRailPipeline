@@ -12,7 +12,7 @@ _OUTPUT_WRITERS: dict[str, Callable[[pd.DataFrame, Path, str | None], None]] = {
 }
 
 _INPUT_READERS: dict[str, Callable[[Path, str | None], pd.DataFrame]] = {
-    "csv":     lambda p, comp=None:        pd.read_csv(p, compression=comp or "infer"),
+    "csv":     lambda p, comp=None:        pd.read_csv(p, compression=comp or "infer", low_memory=False),
     "parquet": lambda p, comp=None:        pd.read_parquet(p),
     "json":    lambda p, comp=None:        pd.read_json(p, orient="records", compression=comp or "infer"),
 }
@@ -57,6 +57,7 @@ def read_cache(cache_path: Union[str, Path]) -> pd.DataFrame:
     """
      
     cache_path = Path(cache_path)
+    log.info("Reading cache from %s", cache_path)
     if not cache_path.exists():
         raise FileNotFoundError(f"Cache file '{cache_path}' does not exist.")
     if not cache_path.is_file():
@@ -101,6 +102,7 @@ def write_cache(cache_path: Union[str, Path], df: pd.DataFrame, mdir: bool = Tru
     """
 
     cache_path = Path(cache_path)
+    log.info("Writing cache to %s", cache_path)
     if not isinstance(df, pd.DataFrame):
         raise TypeError(
             f"Expected a pandas DataFrame to write, got {type(df)}."
@@ -168,6 +170,7 @@ def get_cache(
         and p.suffix in _INPUT_READERS
     ]
     if cache_path.exists():
+        log.info("Cache hit: %s", cache_path)
         return read_cache(cache_path)
     if input_path and input_path.exists() and gen_func and isinstance(gen_func,Callable):
         return gen_func(input_path, cache_path)
@@ -181,4 +184,5 @@ def get_cache(
         msg += "."
     if candidates:
         msg += f" Did you mean one of these formats? {', '.join(candidates)}"
+    log.error(msg)
     raise FileNotFoundError(msg)

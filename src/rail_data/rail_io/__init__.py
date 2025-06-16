@@ -1,4 +1,8 @@
+from .logging_config import setup_logging
 from .config import settings
+
+setup_logging()
+
 from .corpus_client import extract_corpus, get_corpus
 from .weather_extractor import extract_weather, get_weather
 from .geospatial_extractor import extract_geospatial, get_geospatial
@@ -10,6 +14,7 @@ from .track_client import get_track
 from .uk_holidays_client import fetch_public_holidays
 from .utils import read_cache, write_cache, get_cache
 from .main import extract_datasets, get_datasets
+
 
 __all__ = [
     "settings",
@@ -33,4 +38,5 @@ __all__ = [
     "read_cache",
     "write_cache",
     "get_cache",
+    "setup_logging",
 ]

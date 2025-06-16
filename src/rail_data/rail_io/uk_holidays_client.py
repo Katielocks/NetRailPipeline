@@ -25,7 +25,8 @@ def fetch_public_holidays():
     events = data.get("england-and-wales", {}).get("events", [])
     df = pd.json_normalize(events)
     if output_path:
-        write_cache(output_path,df)
+        write_cache(output_path, df)
+        log.info("Saved holiday data to %s", output_path)
         return df
-    else: 
+    else:
         return df

@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional
+import logging
+
+log = logging.getLogger(__name__)
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -42,6 +45,7 @@ class Session:
             )
 
         self._s = session or requests.Session()
+        log.debug("Session created with timeout=%s", self.timeout)
 
         if self.token:
             self._s.headers[self._TOKEN_HEADER] = self.token
@@ -65,13 +69,14 @@ class Session:
 
 
     def __enter__(self) -> "Session":
+        log.debug("Entering session context")
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.close()
 
     def _req(self, method: str, url: str, **kwargs) -> requests.Response:
-
+        log.debug("%s %s", method, url)
         kwargs.setdefault("timeout", self.timeout)
         resp = self._s.request(method, url, **kwargs)
         resp.raise_for_status()
@@ -118,7 +123,7 @@ class Session:
         return self.get(url, **kwargs).content
 
     def save(self, url: str, dest: str | Path, **kwargs) -> Path:
-   
+        log.info("Downloading %s to %s", url, dest)   
         dest = Path(dest)
         dest.parent.mkdir(parents=True, exist_ok=True)
 
@@ -128,5 +133,6 @@ class Session:
         return dest
 
     def close(self) -> None:
+        log.debug("Closing session")
         self._s.close()
 

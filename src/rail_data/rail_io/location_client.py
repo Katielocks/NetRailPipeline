@@ -79,6 +79,8 @@ def extract_location_codes(input_path: Union[str, Path] = None, cache_path: Unio
         input_path = settings.ref.netrail_loc.input
         cache_path = settings.ref.netrail_loc.cache
 
+    log.info("Extracting location codes from %s", input_path)
+
     try:
         zip_path = Path(input_path).expanduser().resolve()
         if not zip_path.exists():
@@ -119,7 +121,8 @@ def extract_location_codes(input_path: Union[str, Path] = None, cache_path: Unio
 
 
     if cache_path:
-        write_cache(cache_path,df)
+        write_cache(cache_path, df)
+        log.info("Wrote location cache to %s", cache_path)
     return df
 
 def get_location_codes(input_path: Union[str, Path] = None, cache_path: Union[str, Path] = None) -> pd.DataFrame:
@@ -129,6 +132,7 @@ def get_location_codes(input_path: Union[str, Path] = None, cache_path: Union[st
         cache_path = settings.ref.netrail_loc.cache
         
     if cache_path and cache_path.exists():
+        log.info("Loading cached locations from %s", cache_path)
         return read_cache(cache_path)
     else:
         return extract_location_codes(input_path, cache_path)

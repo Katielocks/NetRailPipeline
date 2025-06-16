@@ -33,6 +33,7 @@ def extract_corpus(file_path: Union[str, Path],
         Parsed CORPUS records.
     """
     p = Path(file_path).expanduser().resolve()
+    log.info("Parsing CORPUS file %s", p)
     if not p.exists():
         raise FileNotFoundError(f"File not found: {p}")
 
@@ -62,9 +63,11 @@ def extract_corpus(file_path: Union[str, Path],
         else:
             df =  read_cache(p)
     if cache_path and Path(cache_path).exists():
-                    write_cache(cache_path,df)
-    else: 
-       FileNotFoundError(f"No file found at {p!r}")
+        write_cache(cache_path, df)
+        log.info("Wrote CORPUS cache to %s", cache_path)
+    else:
+        log.error("No file found at %r", p)
+        raise FileNotFoundError(f"No file found at {p!r}")
 
 
 def get_corpus(cache_path: Union[str, Path],input_path = Union[str, Path]) -> pd.DataFrame:
@@ -90,4 +93,5 @@ def get_corpus(cache_path: Union[str, Path],input_path = Union[str, Path]) -> pd
     if settings and settings.ref.corpus:
         cache_path = cache_path or settings.ref.corpus.cache
         input_path = input_path or settings.ref.corpus.input
-    return get_cache(cache_path,input_path,extract_corpus)
+    log.info("Loading CORPUS from %s", cache_path)
+    return get_cache(cache_path, input_path, extract_corpus)

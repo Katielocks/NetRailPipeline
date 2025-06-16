@@ -74,6 +74,7 @@ def extract_weather(
     pandas.DataFrame
         Centroids (one per ``location_code``) with added ``Latitude``/``Longitude``.
     """
+    log.info("Extracting weather data for %d locations", len(geospatial))
     if not isinstance(geospatial,pd.DataFrame):
         raise ValueError("geospatial must be a pandas dataframe")
     
@@ -134,6 +135,7 @@ def get_weather(
     pandas.DataFrame
         Combined station mapping for all requested tables/years.
     """
+    log.info("Ensuring weather data from %s to %s", start_date, end_date)
     years = [str(y) for y in range(start_date.year, end_date.year + 1)]
 
     station_map_path = cache_dir / "station_map.json"
