@@ -88,7 +88,6 @@ def extract_weather(
     if not cache_dir or not cache_format:
         raise ValueError("Must provide Valid Cache Directory and Cache Format")
     centroid = _get_centroids(geospatial)
-
     station_map = download_locations(
         centroid,
         years=years,
@@ -136,7 +135,6 @@ def get_weather(
         Combined station mapping for all requested tables/years.
     """
     years = [str(y) for y in range(start_date.year, end_date.year + 1)]
-    print(years)
 
     station_map_path = cache_dir / "station_map.json"
     if station_map_path.exists():
@@ -149,11 +147,9 @@ def get_weather(
         cache_dir = Path(cache_dir)
         for tbl in tables:
             for yr in years:
-                print(yr)
-                print(cache_dir / f"{tbl}_{yr}.{cache_format}")
                 if not (cache_dir / f"{tbl}_{yr}.{cache_format}").exists():
                     missing_caches[tbl].append(yr)
-    
+
     if not missing_caches:
         log.info("All weather files available in cache, if looking to redownload, call extract_weather")
         return None

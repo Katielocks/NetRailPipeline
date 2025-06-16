@@ -6,7 +6,7 @@ import zipfile
 
 import pandas as pd
 
-import cif_hop_extract as cif
+import cif_hop_extractor as cif
 
 
 def make_line(prefix: str, fields: dict[tuple[int, int], str]) -> str:

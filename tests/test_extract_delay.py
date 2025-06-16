@@ -4,7 +4,7 @@ import datetime as dt
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "rail_data", "rail_io"))
 
-from extract_delay import _check_folder, _business_year_start, _build_business_period_map
+from delay_extractor import _check_folder, _business_year_start, _build_business_period_map
 
 
 def test_check_folder(tmp_path):

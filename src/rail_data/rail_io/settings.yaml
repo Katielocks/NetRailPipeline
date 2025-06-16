@@ -18,7 +18,9 @@ delay:
   cache: "data/raw/archive/delay"
   cache_format: "csv"
 geospatial:
-  location_code: "STANOX"
+  location_col: "STANOX"
+  elr_col: "ELR"
+  mil_col : "START"
   max_distance_m: 1000
   seg_len_mi:  8
   api: ""

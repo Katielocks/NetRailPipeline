@@ -131,7 +131,6 @@ def _process_delay_dataframe(handle) -> pd.DataFrame:
     date_format = _infer_datetime_format(df[_DATE_COLS[1]])
     for col in _DATE_COLS:
         df = df[df[col].notna()]
-        print(df[ _DATE_COLS])
         df[col] = pd.to_datetime(df[col], format=date_format)
 
     return df

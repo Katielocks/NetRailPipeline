@@ -7,9 +7,9 @@ from typing import Callable,Union
 import geopandas as gpd
 import pandas as pd
 
-from .bplan_client import get_bplan
-from .track_client import get_elr
-from .config import settings as cfg
+from .location_client import get_location_codes
+from .track_client import get_track
+from .config import settings
 
 __all__ = [
     "link_bplan_to_elr",
@@ -23,13 +23,13 @@ def link_loc_to_elr(
     loc_df: Union[pd.DataFrame,gpd.GeoDataFrame],
     track_gdf: gpd.GeoDataFrame,
     *,
-    loc_col: str = cfg.model.loc_id_field,
+    loc_col: str = None,
     easting_col: str = "EASTING",
     northing_col: str = "NORTHING",
-    elr_col: str = cfg.model.elr_id_field,
-    start_col: str = cfg.model.start_id_field,
-    max_distance_m: float = cfg.model.max_distance_m,
-    seg_length: int = cfg.model.seg_length_mi
+    elr_col: str = None,
+    start_col: str = None,
+    max_distance_m: float = None,
+    seg_length: int = None
 ) -> pd.DataFrame:
     """
     Assigns each STANOX location from BPLAN to the nearest ELR track segment and computes bucket IDs.
@@ -61,6 +61,17 @@ def link_loc_to_elr(
         DataFrame containing original bplan data plus nearest ELR segment info and
         'ELR_MIL' column combining ELR ID and bucketed start mile.
     """
+
+    if settings and settings.geospatial:
+        geo = settings.geospatial
+
+        loc_col = loc_col or geo.loc_id_field
+        elr_col = elr_col or geo.elr_id_field
+        start_col = start_col or geo.mil_id_field
+
+        max_distance_m = max_distance_m or geo.max_distance_m
+        seg_length = seg_length or geo.seg_length_mi
+
         
     loc = loc_df.copy()
     track = track_gdf.copy()
@@ -112,7 +123,7 @@ def link_loc_to_elr(
     out_df["ELR_MIL"] = (
         out_df[elr_col] + "_" + out_df[start_col].astype("str")
     )
-    out_df[[loc_col,easting_col,northing_col,"ELR_MIL"]]
+    out_df = out_df[["ELR_MIL",loc_col,easting_col,northing_col]]
     return out_df
 
 
@@ -128,13 +139,13 @@ def loc2elr(
     bplan_source: str | Path | None = None,
     track_source: str | Path | None = None,
     output_path: str | Path | None = None,
-    loc_col: str = cfg.model.loc_id_field,
+    loc_col: str = None,
     easting_col: str = "EASTING",
     northing_col: str = "NORTHING",
-    elr_col: str = cfg.model.elr_id_field,
-    start_col: str = cfg.model.start_id_field,
-    max_distance_m: float = cfg.model.max_distance_m,
-    seg_length_mi: int = cfg.model.seg_length_mi
+    elr_col: str = None,
+    start_col: str = None,
+    max_distance_m: float = None,
+    seg_length_mi: int = None
 ) -> pd.DataFrame:
     """
     Orchestrates loading of loc and ELR data, computes ELR mile buckets, and writes output.
@@ -168,13 +179,14 @@ def loc2elr(
     pandas.DataFrame
         DataFrame with STANOX locations mapped to ELR mile buckets, matching link_bplan_to_elr output.
     """
-
-    bplan_source = bplan_source or cfg.io.bplan
-    track_source = track_source or cfg.io.track_model
+    if settings and settings.ref.netrail_loc:
+        bplan_source = bplan_source or settings.ref.netrail_loc.input
+    if settings and settings.ref.track_model:
+        track_source = track_source or settings.ref.track_input.input
                                                                    
-    loc_df = get_bplan(bplan_source)
+    loc_df = get_location_codes(bplan_source)
 
-    with get_elr(track_source) as track_path:
+    with get_track(track_source) as track_path:
         track_gdf = gpd.read_file(track_path)
         if track_gdf.crs is None:
             track_gdf.set_crs("EPSG:27700", inplace=True)

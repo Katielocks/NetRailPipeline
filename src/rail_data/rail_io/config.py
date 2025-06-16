@@ -84,7 +84,9 @@ class RefDirCfgMap(RefCfg):
 
 
 class GeospatialCfg(RefCfg):
-    loc_id_field: str = Field(alias="location_code")
+    loc_id_field: str = Field(alias="location_col")
+    elr_id_field: str = Field(alias="elr_col")
+    mil_id_field: str = Field(alias="mil_col")
     max_distance_m: int = Field(alias="max_distance_m")
     seg_length_mi: int = Field(alias="seg_len_mi")
 
