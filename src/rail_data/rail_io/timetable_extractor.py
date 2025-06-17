@@ -116,7 +116,7 @@ def extract_timetable(
 
     return df
 
-def get_timetable(cache_path: Union[str, Path] , input_path: Union[str, Path],start_time: dt.datetime = None, end_time: dt.datetime = None):
+def get_timetable(cache_path: Union[str, Path] , input_path: Union[str, Path] = None ,start_time: dt.datetime = None, end_time: dt.datetime = None):
     """Return the timetable DataFrame from ``cache_path`` or build it."""
     if cache_path and Path(cache_path).exists():
         return get_cache(cache_path)
