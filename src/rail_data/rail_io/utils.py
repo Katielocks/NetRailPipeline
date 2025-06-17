@@ -6,41 +6,24 @@ import logging
 log = logging.getLogger(__name__)
 
 _OUTPUT_WRITERS: dict[str, Callable[[pd.DataFrame, Path, str | None], None]] = {
-    "csv":     lambda df, p, comp=None:     df.to_csv(p, index=False, compression=comp or "infer"),
+    "csv":     lambda df, p, comp=None:     df.to_csv(p, index=False, compression="infer"),
     "parquet": lambda df, p, comp=None:     df.to_parquet(p, index=False),
-    "json":    lambda df, p, comp=None:     df.to_json(p, orient="records", compression=comp or "infer"),
+    "json":    lambda df, p, comp=None:     df.to_json(p, orient="records", compression="infer"),
 }
 
 _INPUT_READERS: dict[str, Callable[[Path, str | None], pd.DataFrame]] = {
-    "csv":     lambda p, comp=None:        pd.read_csv(p, compression=comp or "infer", low_memory=False),
+    "csv":     lambda p, comp=None:        pd.read_csv(p, compression="infer", low_memory=False),
     "parquet": lambda p, comp=None:        pd.read_parquet(p),
-    "json":    lambda p, comp=None:        pd.read_json(p, orient="records", compression=comp or "infer"),
+    "json":    lambda p, comp=None:        pd.read_json(p, orient="records", compression="infer"),
 }
-_COMP_EXTS = {".gz": "gzip",
-              ".gzip": "gzip",
-              ".bz2": "bz2",
-              ".xz": "xz",
-              ".zip": "zip"}         
 
-
-def _detect_format_and_compression(path: Path) -> tuple[str, str | None]:
-    """
-    Returns (<format>, <compression>) where <compression> is a pandas
-    """
-    suffixes = path.suffixes                                  
-    if not suffixes:
-        raise ValueError(f"No extension found for '{path}'.")
-    compression = None
-    if suffixes[-1] in _COMP_EXTS:
-        compression = _COMP_EXTS[suffixes[-1]]
-        if len(suffixes) < 2:                               
-            raise ValueError(f"Compressed file '{path}' needs an inner extension "
-                             "(eg. *.csv.gz, *.json.bz2).")
+def _get_fmt(path: Union[str,Path]) -> str:
+    suffixes = path.suffixes
+    if len(suffixes) == 1:                               
+        fmt = suffixes[0].lstrip(".").lower()
+    elif len(suffixes) > 1:                               
         fmt = suffixes[-2].lstrip(".").lower()
-    else:
-        fmt = suffixes[-1].lstrip(".").lower()
-    return fmt, compression
-
+    return fmt
 
 def read_cache(cache_path: Union[str, Path]) -> pd.DataFrame:
     """Load a cached :class:`pandas.DataFrame` from *cache_path*.
@@ -63,7 +46,7 @@ def read_cache(cache_path: Union[str, Path]) -> pd.DataFrame:
     if not cache_path.is_file():
         raise ValueError(f"Cache path '{cache_path}' is not a file.")
 
-    cache_fmt,comp = _detect_format_and_compression(cache_path)
+    cache_fmt = _get_fmt(cache_path)
     if not cache_fmt:
         raise ValueError(
             f"No file extension found for '{cache_path}'."
@@ -75,7 +58,7 @@ def read_cache(cache_path: Union[str, Path]) -> pd.DataFrame:
             f" Supported formats are: {list(_INPUT_READERS.keys())}."
         )
     try:
-        df = _INPUT_READERS[cache_fmt](cache_path,comp)
+        df = _INPUT_READERS[cache_fmt](cache_path)
     except Exception as e:
         raise IOError(
             f"Failed to read cache file '{cache_path}' as {cache_fmt}: {e}"
@@ -86,7 +69,7 @@ def read_cache(cache_path: Union[str, Path]) -> pd.DataFrame:
         )
     return df
 
-def write_cache(cache_path: Union[str, Path], df: pd.DataFrame, mdir: bool = True,comp = None) -> None:
+def write_cache(cache_path: Union[str, Path], df: pd.DataFrame, mdir: bool = True) -> None:
     """Write *df* to *cache_path* in the appropriate format.
 
     Parameters
@@ -115,7 +98,7 @@ def write_cache(cache_path: Union[str, Path], df: pd.DataFrame, mdir: bool = Tru
             raise FileNotFoundError(f"Directory '{parent}' does not exist.")
         if not parent.is_dir():
             raise ValueError(f"Parent path '{parent}' is not a directory.")
-    cache_fmt = cache_path.suffix.lstrip(".").lower()
+    cache_fmt = _get_fmt(cache_path)
     if not cache_fmt:
         raise ValueError(
             f"No file extension found for '{cache_path}'."
@@ -127,7 +110,7 @@ def write_cache(cache_path: Union[str, Path], df: pd.DataFrame, mdir: bool = Tru
             f" Supported formats are: {list(_OUTPUT_WRITERS.keys())}."
         )
     try:
-        _OUTPUT_WRITERS[cache_fmt](df, cache_path,comp)
+        _OUTPUT_WRITERS[cache_fmt](df, cache_path)
     except Exception as e:
         raise IOError(
             f"Failed to write DataFrame to '{cache_path}' as {cache_fmt}: {e}"
@@ -170,7 +153,6 @@ def get_cache(
         and p.suffix in _INPUT_READERS
     ]
     if cache_path.exists():
-        log.info("Cache hit: %s", cache_path)
         return read_cache(cache_path)
     if input_path and input_path.exists() and gen_func and isinstance(gen_func,Callable):
         return gen_func(input_path, cache_path)

@@ -9,17 +9,12 @@ import pytest
 from rail_data.rail_io import utils
 
 
-def test_detect_format_simple():
-    fmt, comp = utils._detect_format_and_compression(Path("data.csv"))
-    assert fmt == "csv"
-    assert comp is None
-
-
-def test_detect_format_compressed():
-    fmt, comp = utils._detect_format_and_compression(Path("data.json.gz"))
-    assert fmt == "json"
-    assert comp == "gzip"
-
+def test_write_read_cache_roundtrip_csv_compressed(tmp_path):
+    df = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
+    path = tmp_path / "df.csv.gz"
+    utils.write_cache(path, df)
+    df2 = utils.read_cache(path)
+    pd.testing.assert_frame_equal(df, df2)
 
 def test_write_read_cache_roundtrip_csv(tmp_path):
     df = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
