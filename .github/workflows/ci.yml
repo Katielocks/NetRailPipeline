@@ -4,7 +4,7 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu, windows-2022]
+        os: [windows-2022]
         python-version: [3.12]        
     runs-on: ${{ matrix.os }}
 
