@@ -6,15 +6,15 @@ import logging
 log = logging.getLogger(__name__)
 
 _OUTPUT_WRITERS: dict[str, Callable[[pd.DataFrame, Path, str | None], None]] = {
-    "csv":     lambda df, p, comp=None:     df.to_csv(p, index=False, compression="infer"),
-    "parquet": lambda df, p, comp=None:     df.to_parquet(p, index=False),
-    "json":    lambda df, p, comp=None:     df.to_json(p, orient="records", compression="infer"),
+    "csv":     lambda df, p:     df.to_csv(p, index=False, compression="infer"),
+    "parquet": lambda df, p:     df.to_parquet(p, index=False),
+    "json":    lambda df, p:     df.to_json(p, orient="records", compression="infer"),
 }
 
 _INPUT_READERS: dict[str, Callable[[Path, str | None], pd.DataFrame]] = {
-    "csv":     lambda p, comp=None:        pd.read_csv(p, compression="infer", low_memory=False),
-    "parquet": lambda p, comp=None:        pd.read_parquet(p),
-    "json":    lambda p, comp=None:        pd.read_json(p, orient="records", compression="infer"),
+    "csv":     lambda p:        pd.read_csv(p, compression="infer", low_memory=False),
+    "parquet": lambda p:        pd.read_parquet(p),
+    "json":    lambda p:        pd.read_json(p, orient="records", compression="infer"),
 }
 
 def _get_fmt(path: Union[str,Path]) -> str:
@@ -80,8 +80,6 @@ def write_cache(cache_path: Union[str, Path], df: pd.DataFrame, mdir: bool = Tru
         Data to be cached.
     mdir : bool, optional
         Create parent directories when ``True`` (default).
-    comp : str | None, optional
-        Compression method passed through to pandas writers.
     """
 
     cache_path = Path(cache_path)

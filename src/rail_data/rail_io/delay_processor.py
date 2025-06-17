@@ -96,7 +96,7 @@ def _swap_columns(df: pd.DataFrame, col1: str, col2: str) -> pd.DataFrame:
 def _infer_datetime_format(sample: pd.Series) -> str: 
     sample = sample.dropna().astype(str)
     if sample.empty:
-        raise ValueError("No non‑null values to infer format from.")
+        raise ValueError("No non-null values to infer format from.")
 
     probe = sample.iloc[0].strip()
 
@@ -135,19 +135,19 @@ def _process_delay_dataframe(handle) -> pd.DataFrame:
 
     return df
 
-def _extract_first_csv(zip_path: Path, dest_dir: Path, fmt: str, period: str, *, name: str = "delay") -> None:
+def _extract_first_csv(zip_path: Path, dest_dir: Path, fmt: str, year:str, period: str, *, name: str = "delay") -> None:
     with zipfile.ZipFile(zip_path) as zf:
         for member in zf.namelist():
             if not member.lower().endswith(".csv"):
                 continue
-            dest = dest_dir / period / f"{name}.{fmt}"
+            dest = f"{name}_{year}_{period}.{fmt}"
             dest.parent.mkdir(parents=True, exist_ok=True)
             with zf.open(member) as src:
                 df = _process_delay_dataframe(src)
             write_cache(dest,df)
-            log.info(" %s to %s", zip_path.name, dest.relative_to(dest_dir.parent))
+            log.info("%s to %s", zip_path.name, dest.relative_to(dest_dir.parent))
             return
-    log.warning(" No CSV found inside %s – skipped", zip_path.name)
+    log.warning("No CSV found inside %s -    skipped", zip_path.name)
 
 
 def _handle_period_zip(
@@ -174,10 +174,9 @@ def _handle_period_zip(
         if season_key not in business_periods or period not in business_periods[season_key]:
             return False
 
-    season_dir = output_root / season_key
 
     try:
-        _extract_first_csv(zip_path, season_dir, output_format,period)
+        _extract_first_csv(zip_path, output_root, output_format,season_key,period)
     except zipfile.BadZipFile:
         log.error("✗ %s is corrupted – skipping", zip_path.name)
     return True

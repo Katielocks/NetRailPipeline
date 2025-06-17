@@ -10,11 +10,9 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pyarrow.dataset as ds
 
-from ..rail_io import settings, get_timetable, get_geospatial
+from ..rail_io import settings, get_timetable
+from .utils import write_to_parquet,location_to_ELR_MIL,sep_datetime
 
-_PARTITION_COLS: Final[list[str]] = [
-    "ELR_MIL", "year", "month", "day", "hour",
-]
 
 def _yymmdd_to_datetime(s: pd.Series | pd.Index) -> pd.Series:
     """Convert CIF YYMMDD strings → pandas datetime64[ns]."""
@@ -105,17 +103,16 @@ def _build_hourly_counts(tt_df: pd.DataFrame, geo_df: pd.DataFrame | None = None
 
     counts = hours.value_counts(["ELR_MIL", "run_hour"]).rename("train_count").reset_index()
 
-    counts["year"] = counts["run_hour"].dt.year
-    counts["month"] = counts["run_hour"].dt.month
-    counts["day"] = counts["run_hour"].dt.day
-    counts["hour"] = counts["run_hour"].dt.hour
+    datetime_parts = sep_datetime(counts['run_hour'])
+    counts = pd.concat([counts, datetime_parts], axis=1)
+    
     return counts
 
 
 def extract_train_counts(
     *,
     out_root: str | Path,
-    partition_cols: Iterable[str] = _PARTITION_COLS,
+    partition_cols: Iterable[str] = None,
     parquet_compression: str | None = "snappy",
     window_rule: str | timedelta = "W" 
 ) -> ds.Dataset:
@@ -146,7 +143,6 @@ def extract_train_counts(
     out_path = Path(out_root).expanduser().resolve()
     out_path.mkdir(parents=True, exist_ok=True)
 
-
     timetable_df = get_timetable(settings.timetable.cache)[
         [
             "train_id",
@@ -161,18 +157,9 @@ def extract_train_counts(
     if timetable_df.empty:
         raise RuntimeError("No timetable rows returned")
 
-    geo_df = get_geospatial(settings.geospatial.cache)[["STANOX", "ELR_MIL"]]
-    if geo_df.empty:
-        raise RuntimeError("Geospatial lookup empty - cannot map STANOX to ELR_MIL")
-
-
     timetable_df["start_date"] = _yymmdd_to_datetime(timetable_df["start_date"]).dt.normalize()
     timetable_df["end_date"] = _yymmdd_to_datetime(timetable_df["end_date"]).dt.normalize()
 
-
-    stanox_to_elrmil = (
-        geo_df.drop_duplicates("STANOX").set_index("STANOX")["ELR_MIL"].to_dict()
-    )
 
 
     horizon_start = timetable_df["start_date"].min()
@@ -201,27 +188,15 @@ def extract_train_counts(
         slice_df.loc[slice_df["start_date"] < win_start, "start_date"] = win_start
         slice_df.loc[slice_df["end_date"] > win_end, "end_date"] = win_end
 
-        slice_df["ELR_MIL"] = slice_df["stanox_dep"].map(stanox_to_elrmil)
+        slice_df["ELR_MIL"] = location_to_ELR_MIL(slice_df["stanox_dep"])
 
         counts = _build_hourly_counts(slice_df, geo_df=None)
 
-        table = pa.Table.from_pandas(counts)
-        try:
-            pq.write_to_dataset(
-                table,
-                root_path=str(out_path),
-                partition_cols=list(partition_cols),
-                existing_data_behavior="overwrite_or_ignore",  
-                compression=parquet_compression,
-            )
-        except TypeError: 
-            pq.write_to_dataset(
-                table,
-                root_path=str(out_path),
-                partition_cols=list(partition_cols),
-                compression=parquet_compression,
-            )
-
-        win_start += offset
+        write_to_parquet(
+            counts,
+            out_root,
+            partition_cols,
+            parquet_compression
+        )
 
     return ds.dataset(out_path, format="parquet")
