@@ -33,9 +33,7 @@ def sep_datetime(
         datetime_column: A pandas Series or DatetimeIndex of dtype datetime64.
     Returns:
         DataFrame with each requested component as a column.
-
-    Raises:
-        ValueError: If datetime_column is not datetime-like or if unsupported component requested.
+        
     """
     if isinstance(datetime_column, pd.DatetimeIndex):
         series = pd.Series(datetime_column, name='datetime')

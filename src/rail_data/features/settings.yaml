@@ -1,0 +1,44 @@
+
+weather:
+  features:
+    tables:
+      TD:
+        min_air_temp:
+          action: "min"
+          window_hours: 48
+        max_air_temp:
+          action: "max"
+          window_hours: 48
+      RH:
+        prcp_amt:
+          action: "sum"
+          window_hours: 6 
+      WH:
+        SNOW_DEPTH:
+          action: "sum"
+          window_hours: 24
+    flags:
+      freeze:
+        table:
+          TD:
+            min_air_temp:
+              action : "le"
+              window_hours: 72
+        threshold: 0.0
+      heatwave: 
+        table:
+          TD:
+            max_air_temp:
+              action : "ge"
+              window_hours: 72
+        threshold: 25.0
+  cache_dir: "data/raw/archive/weather"
+  cache_format: "csv"
+  parquet_dir: "data/interim/weather"
+
+train_counts:
+  parquet_dir: "data/interim/timetable"
+
+incidents:
+  parquet_dir: "data/interim/incidents"
+
