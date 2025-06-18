@@ -32,7 +32,7 @@ def _load_table(year:str,
     
     
     if input_dir and Path(input_dir).exists():
-       input_path = f"input_dir/{table}_{year}.{input_fmt}"
+       input_path = f"{input_dir}/{table}_{year}.{input_fmt}"
        return read_cache(input_path)
        
 
@@ -84,7 +84,7 @@ def build_raw_weather_feature_frame(start_date: dt.datetime = None,end_date: dt.
                 raw = raw[raw["meto_stmp_time"].between(start_date, end_date)]
             
             dt_parts = sep_datetime(raw["meto_stmp_time"], _DATE_COMPENENTS)
-            raw = pd.concat(raw,dt_parts,axis=1)
+            raw = pd.concat([raw,dt_parts],axis=1)
         
             src_col = f"src_id_{table_name}"
             raw = raw.rename(columns={"src_id": src_col})

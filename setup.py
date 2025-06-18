@@ -2,7 +2,7 @@ import setuptools
 from pathlib import Path
 
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text(encoding="utf-8")
+long_description = (this_directory / "readme.md").read_text(encoding="utf-8")
 
 requirements = []
 requirements_path = this_directory / "requirements.txt"

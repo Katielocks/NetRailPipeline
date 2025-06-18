@@ -182,7 +182,7 @@ def loc2elr(
     if settings and settings.ref.netrail_loc:
         bplan_source = bplan_source or settings.ref.netrail_loc.input
     if settings and settings.ref.track_model:
-        track_source = track_source or settings.ref.track_input.input
+        track_source = track_source or settings.ref.track_model.input
                                                                    
     loc_df = get_location_codes(bplan_source)
 

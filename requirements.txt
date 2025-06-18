@@ -9,7 +9,6 @@ pyproj==3.7.1
 pytest==8.4.0
 python-dotenv==1.1.0
 PyYAML==6.0.2
-PyYAML==6.0.2
 Requests==2.32.4
 setuptools==80.8.0
 statsmodels==0.14.4

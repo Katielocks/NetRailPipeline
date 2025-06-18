@@ -46,7 +46,7 @@ def _build_business_period_map(
     start_year_date = _business_year_start(start_date, year_start=year_start)
     end_year_date = _business_year_start(end_date, year_start=year_start)
 
-    periods: List[str] = {}
+    periods: List[str] = []
 
     for year in range(start_year_date.year, end_year_date.year + 1):
         by_start = dt.datetime(year, *year_start)
@@ -98,7 +98,7 @@ def extract_incident_dataset(directory: Union[Path|str] = None,
                           start_date: dt.datetime= None, 
                           end_date: dt.datetime= None):
     if settings and settings.delay:
-        directory = directory or settings.delay.cache_dir
+        directory = directory or settings.delay.cache
         fmt = fmt or settings.delay.cache_format
     files = _delay_files(directory,start_date=start_date,end_date=end_date,fmt=fmt)
     for file in files:
