@@ -8,12 +8,13 @@ In future versions, this will include incident and delay modelling subpackages.
 
 ## Contents
 
+``` 
 src/
 ├── rail_data/
 │   ├── io/        # Raw data ingestion, caching, and parsing
 │   └── features/  # Feature engineering on cached data
+```
 
----
 
 ## Key Concepts
 
