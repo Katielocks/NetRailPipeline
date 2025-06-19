@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ..io import settings as io_settings
 from .convert_weather import build_raw_weather_feature_frame
-from .sql_weather import build_weather_features_sql
+from .sql_weather import build_weather_features
 from .streaming_train_counts import extract_train_counts
 from .extract_incidents import extract_incident_dataset
 from .generate_database import generate_main_database
@@ -41,7 +41,7 @@ def create_datasets(start_date: dt.date | dt.datetime | str,
     generate_main_database(loc_ids,start_date,end_date,settings.main.parquet_dir)
 
     build_raw_weather_feature_frame(start_date=start_dt, end_date=end_dt)
-    build_weather_features_sql(parquet_dir=settings.weather.parquet_dir)
+    build_weather_features(parquet_dir=settings.weather.parquet_dir)
 
     extract_train_counts(out_root=settings.train_counts.parquet_dir,start_date=start_date,end_date=end_date)
 
