@@ -10,6 +10,7 @@ from .streaming_train_counts import extract_train_counts
 from .extract_incidents import extract_incident_dataset
 from .generate_database import generate_main_database
 from .config import settings
+from .utils import get_geospatial
 
 
 def _as_datetime(val: dt.date | dt.datetime | str) -> dt.datetime:
@@ -33,7 +34,11 @@ def create_datasets(start_date: dt.date | dt.datetime | str,
     if start_dt > end_dt:
         raise ValueError("start_date must be <= end_date")
     
-    generate_main_database(start_date,end_date)
+    geo_df = get_geospatial()
+    loc_ids = geo_df["ELR_MIL"].dropna().unique().tolist()
+
+
+    generate_main_database(loc_ids,start_date,end_date,settings.main.parquet_dir)
 
     build_raw_weather_feature_frame(start_date=start_dt, end_date=end_dt)
     build_weather_features_sql(parquet_dir=settings.weather.parquet_dir)

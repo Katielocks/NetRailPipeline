@@ -36,6 +36,9 @@ weather:
   cache_format: "csv"
   parquet_dir: "data/interim/weather"
 
+,main:
+  parquet_dir: "data/interim/main"
+
 train_counts:
   parquet_dir: "data/interim/timetable"
 
