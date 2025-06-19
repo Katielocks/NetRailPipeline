@@ -5,9 +5,6 @@ from typing import Dict, Any
 
 import duckdb
 import pandas as pd
-import yaml
-
-from .utils import write_to_parquet
 from .config import settings
 
 
@@ -21,18 +18,19 @@ AGG_MAP = {
 
 def build_weather_features_sql(
     parquet_dir: str | Path
-) :
-    """Compute weather features using SQL window functions."""
+) -> None:
+    """Compute weather features using SQL window functions and save back to partitioned Parquet files."""
 
     features = settings.weather.features
-    parquet_glob = str(Path(parquet_dir).joinpath("*.parquet"))
+    parquet_dir = Path(parquet_dir)
+    parquet_glob = str(parquet_dir.joinpath("*.parquet"))
 
     con = duckdb.connect()
     con.execute(
         f"CREATE TABLE weather AS SELECT *, make_timestamp(year, month, day, hour, 0, 0) AS ts FROM parquet_scan('{parquet_glob}')"
     )
 
-    select_parts = ["ELR_MIL", "ts"]
+    select_parts = ["ELR_MIL", "year", "month", "day", "hour"]
     windows: Dict[str, int] = {}
 
     for _tbl, cols in features.get("tables", {}).items():
@@ -67,6 +65,19 @@ def build_weather_features_sql(
         for name, hrs in windows.items()
     )
 
-    query = f"SELECT {', '.join(select_parts)} FROM weather WINDOW {window_sql} ORDER BY ELR_MIL, ts"
-    df = con.execute(query).df()
-    write_to_parquet(df,parquet_dir)
+    query = (
+        f"SELECT {', '.join(select_parts)} "
+        f"FROM weather WINDOW {window_sql} "
+        f"ORDER BY ELR_MIL, ts"
+    )
+
+    df = con.execute(query).fetchdf()
+
+    df.to_parquet(
+        parquet_dir,
+        partition_cols=["ELR_MIL", "year", "month", "day", "hour"],
+        engine="pyarrow",
+        index=False,
+    )
+
+    con.close()

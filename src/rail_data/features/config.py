@@ -125,18 +125,12 @@ class _ParquetCfg(BaseModel):
     model_config = ConfigDict(frozen=True, validate_by_name=True)
 
 
-class TrainCountsCfg(_ParquetCfg):
-    """Timetable counts parquet location."""
-
-
-class IncidentsCfg(_ParquetCfg):
-    """incidents parquet location."""
-
 
 class Settings(BaseModel):
     weather: WeatherCfg
-    train_counts: TrainCountsCfg
-    incidents: IncidentsCfg
+    train_counts: _ParquetCfg
+    incidents: _ParquetCfg
+    main: _ParquetCfg
 
     model_config = ConfigDict(frozen=True)
 

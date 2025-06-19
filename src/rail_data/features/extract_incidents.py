@@ -106,6 +106,7 @@ def _discover_incident_codes(files: Iterable[Path], fmt: str) -> Set[str]:
     return codes
 
 
+
 def extract_incident_dataset(
     *,
     directory: Union[Path, str, None] = None,
@@ -169,10 +170,16 @@ def extract_incident_dataset(
         try:
             df = read_cache(f)
         except Exception as err:
-            logger.error("Failed to read %s – skipping. Error: %s", f, err)
+            logger.error("Failed to read %s - skipping. Error: %s", f, err)
             continue
+        
 
         if not df.empty:
+            
+            if start_date is not None and end_date is not None:
+                df = df[df["EVENT_DATETIME"].between(start_date, end_date)]
+
+            df["ELR_MIL"] = location_to_ELR_MIL(df["SECTION_CODE"].str.split(":")[0])
             df = (df.sort_values(["INCIDENT_REASON", "EVENT_DATETIME","ELR_MIL"])
                     .drop_duplicates(subset="INCIDENT_REASON", keep="first"))
             datetime = sep_datetime(df["EVENT_DATETIME"])
