@@ -4,7 +4,7 @@ import datetime as dt
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from rail_data.rail_io.delay_extractor import (
+from rail_data.io.delay_extractor import (
     _check_folder,
     _business_year_start,
     _build_business_period_map,

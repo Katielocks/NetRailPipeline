@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from datetime import timedelta
 from typing import Final, Iterable
+
+import datetime as dt
 
 import numpy as np
 import pandas as pd
@@ -10,7 +11,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pyarrow.dataset as ds
 
-from ..rail_io import settings, get_timetable
+from ..io import settings, get_timetable
 from .utils import write_to_parquet,location_to_ELR_MIL,sep_datetime
 
 
@@ -112,9 +113,11 @@ def _build_hourly_counts(tt_df: pd.DataFrame, geo_df: pd.DataFrame | None = None
 def extract_train_counts(
     *,
     out_root: str | Path,
+    start_date: dt.datetime = None,
+    end_date: dt.datetime = None,
     partition_cols: Iterable[str] = None,
     parquet_compression: str | None = "snappy",
-    window_rule: str | timedelta = "W" 
+    window_rule: str | dt.timedelta = "W" 
 ) -> ds.Dataset:
     """Stream a large timetable into hourly train-counts.
 
@@ -129,10 +132,6 @@ def extract_train_counts(
     window_rule : str | datetime.timedelta, default "W"
         Size of each processing window.  Examples: ``"M"`` for calendar
         months, or ``timedelta(days=3)``.
-    Returns
-    -------
-    pyarrow.dataset.Dataset
-        A lightweight handle to the resulting Parquet dataset.
     """
 
     if not (settings and settings.timetable and settings.geospatial):
@@ -164,6 +163,12 @@ def extract_train_counts(
 
     horizon_start = timetable_df["start_date"].min()
     horizon_end = timetable_df["end_date"].max()
+
+    if start_date and horizon_start < start_date:
+        horizon_start = start_date
+    if end_date and horizon_end > end_date:
+        horizon_end = end_date
+
 
     offset = pd.tseries.frequencies.to_offset(window_rule)
     win_start = horizon_start

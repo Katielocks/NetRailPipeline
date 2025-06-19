@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import pandas as pd
 import pytest
 
-from rail_data.rail_io import utils
+from rail_data.io import utils
 
 
 def test_write_read_cache_roundtrip_csv_compressed(tmp_path):

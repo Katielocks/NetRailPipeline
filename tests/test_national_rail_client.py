@@ -2,8 +2,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from rail_data.rail_io import national_rail_client as nr
-from rail_data.rail_io.session import Session
+from rail_data.io import national_rail_client as nr
+from rail_data.io.session import Session
 
 
 class DummyRequestSession:

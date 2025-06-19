@@ -4,7 +4,7 @@ from pathlib import Path
 import sys,os
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from rail_data.rail_io import track_client
+from rail_data.io import track_client
 
 import pytest
 

@@ -13,7 +13,7 @@ import pyarrow.dataset as ds
 import logging
 
 
-from ..rail_io import settings, get_geospatial
+from ..io import settings, get_geospatial
 
 logger = logging.getLogger(__name__)
 

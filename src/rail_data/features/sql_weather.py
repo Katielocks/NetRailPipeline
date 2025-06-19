@@ -7,6 +7,9 @@ import duckdb
 import pandas as pd
 import yaml
 
+from .utils import write_to_parquet
+from .config import settings
+
 
 AGG_MAP = {
     "min": "MIN",
@@ -16,22 +19,12 @@ AGG_MAP = {
 }
 
 
-_DEF_SETTINGS = Path(__file__).with_name("settings.yaml")
-
-
-def _load_feature_cfg(path: str | Path | None = None) -> Dict[str, Any]:
-    cfg_path = Path(path or _DEF_SETTINGS)
-    raw = yaml.safe_load(cfg_path.read_text())
-    return raw["weather"]["features"]
-
-
 def build_weather_features_sql(
-    parquet_dir: str | Path,
-    cfg_path: str | Path | None = None,
-) -> pd.DataFrame:
+    parquet_dir: str | Path
+) :
     """Compute weather features using SQL window functions."""
 
-    features = _load_feature_cfg(cfg_path)
+    features = settings.weather.features
     parquet_glob = str(Path(parquet_dir).joinpath("*.parquet"))
 
     con = duckdb.connect()
@@ -75,4 +68,5 @@ def build_weather_features_sql(
     )
 
     query = f"SELECT {', '.join(select_parts)} FROM weather WINDOW {window_sql} ORDER BY ELR_MIL, ts"
-    return con.execute(query).df()
+    df = con.execute(query).df()
+    write_to_parquet(df,parquet_dir)
