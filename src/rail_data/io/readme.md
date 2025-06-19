@@ -14,7 +14,7 @@ Everything is cached locally so that downstream code can work offline and fast.
 | `location_client.py` | Parses Network Rail **location reference** files (STANOX, TIPLOC…). |
 | `track_client.py` | Opens the track-model ZIP; yields the shapefile for GeoPandas. |
 | `geospatial_extractor.py` | Maps locations to track segments (`ELR_MIL`), writes `geospatial.parquet`. |
-| `weather_extractor.py` | Downloads / filters MIDAS weather tables by year → `archive/weather/*.csv`. |
+| `weather_extractor.py` | Downloads / filters MIDAS weather tables by year to `archive/weather/*.csv`. |
 | `timetable_extractor.py` | Converts CIF timetables to a flat CSV of train “hops”. |
 | `delay_extractor.py` | Unzips & normalises **delay logs** into per-period CSVs. |
 | `uk_holidays_client.py` | Fetches UK public-holiday dates. |
