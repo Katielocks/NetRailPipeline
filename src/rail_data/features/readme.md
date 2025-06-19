@@ -15,7 +15,7 @@ Everything is pure Python + DuckDB + Pandas; outputs are partitioned Parquet fil
 | `sql_weather.py`             | Uses DuckDB to add rolling aggregates / flags (e.g. 48-h min temp, ‘freeze’ flag).            |
 | `streaming_train_counts.py`  | Expands the timetable into hourly **train-count** features per segment.                      |
 | `extract_incidents.py`       | Summarises delay logs into hourly **incident count** columns (`INCIDENT_*`).                  |
-| `utils.py`                   | Common helpers – datetime split, STANOX→`ELR_MIL` mapping, Parquet writer.                   |
+| `utils.py`                   | Common helpers – datetime split, STANOX to `ELR_MIL` mapping, Parquet writer.                   |
 | `config.py`                  | Loads `settings.yaml` into a Pydantic `settings` object (all paths, parameters).             |
 
 ---
