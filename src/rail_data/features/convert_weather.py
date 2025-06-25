@@ -147,9 +147,8 @@ def build_raw_weather_feature_frame(start_date: dt.datetime = None,end_date: dt.
             src_col = f"src_id_{table_name}"
             raw = raw.rename(columns={"src_id": src_col})
             
-            feature_cols = list(col_map.keys())
-            print(raw)
-            cols = _DATE_COMPENENTS + [src_col] + feature_cols
+
+            cols = _DATE_COMPENENTS + [src_col] + list(raw.columns[2:-4])
             df_tab = raw[cols].copy()
             df_tab["year"] = df_tab["year"].astype(str)
             
