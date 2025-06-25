@@ -8,5 +8,4 @@ import rail_data
 
 start_date = "2023-01-01"
 end_date =  "2023-01-03"
-rail_data.features.build_raw_weather_feature_frame(start_date,end_date)
-
+rail_data.features.build_weather_features(start_date=start_date,end_date=end_date)

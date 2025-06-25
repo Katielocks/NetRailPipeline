@@ -14,7 +14,7 @@ weather:
           action: "sum"
           window_hours: 6 
       WH:
-        SNOW_DEPTH:
+        snow_depth:
           action: "sum"
           window_hours: 24
     flags:

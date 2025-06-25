@@ -40,15 +40,24 @@ def _explode_hourly(df: pd.DataFrame,
             .drop_duplicates(subset=[id_col, time_col], keep="last"))
 
     hourly = (
-        df.groupby(id_col, group_keys=False)         # keep id as column
-          .apply(lambda g: (g
-                            .set_index(time_col)     #  ← datetime is *the* index
-                            .resample("h")           #  ← upsample
-                            .ffill()))
-          .reset_index()
-    )        
+    df.groupby(id_col, group_keys=False)            
+      .apply(
+          lambda g: (
+              g.set_index(time_col)              
+               .resample("h")                      
+               .ffill()                              
+               .assign(**{id_col: g.name})         
+          ),
+          include_groups=False                     
+      )
+      .reset_index()                                
+      [[time_col, id_col]                           
+       + [c for c in df.columns
+          if c not in (time_col, id_col)]]
+    )
     hourly[time_col] = hourly[time_col].dt.tz_localize(None)
     hourly = hourly.reset_index(drop=True) 
+
     return hourly
 
 def _load_table(year:str,
@@ -66,6 +75,7 @@ def _load_table(year:str,
 
         df["meto_stmp_time"] = pd.to_datetime(df["meto_stmp_time"],
                                     errors="coerce")
+        df = df.fillna(0)
 
         return df
        
@@ -125,7 +135,7 @@ def build_raw_weather_feature_frame(start_date: dt.datetime = None,end_date: dt.
             if start_date is not None and end_date is not None:
                 buffer_time  = dt.timedelta(days=1)
                 raw = raw[raw["meto_stmp_time"].between(start_date-buffer_time, end_date+buffer_time)]
-                
+
             raw = _explode_hourly(raw)
             
             if start_date is not None and end_date is not None:
@@ -138,11 +148,13 @@ def build_raw_weather_feature_frame(start_date: dt.datetime = None,end_date: dt.
             raw = raw.rename(columns={"src_id": src_col})
             
             feature_cols = list(col_map.keys())
+            print(raw)
             cols = _DATE_COMPENENTS + [src_col] + feature_cols
             df_tab = raw[cols].copy()
+            df_tab["year"] = df_tab["year"].astype(str)
             
             df_loc = df_tab.merge(
-                station_map[["loc_id", src_col]],
+                station_map[["loc_id", src_col, "year"]],
                 on=[src_col, "year"],
                 how="inner"
             ).drop(columns=[src_col])

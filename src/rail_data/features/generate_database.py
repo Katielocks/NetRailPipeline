@@ -26,7 +26,7 @@ def generate_main_database(
     output_dir: Union[str, Path],
     *,
     database: str = ":memory:",
-    partition_by: tuple[str, ...] = ("loc_id", "year", "month", "day"),
+    partition_by: tuple[str, ...] = ("ELR_MIL", "year", "month", "day"),
     write_mode: str = "append",       
     threads: int | None = None,
     memory_limit: str = "12GB",
@@ -54,19 +54,18 @@ def generate_main_database(
     if threads is None:
         threads = max(1, (os.cpu_count() or 1) // 2)
 
-    # --------------- build the VALUES list and core query -----------------
     loc_values_sql = _iterable_str(loc_ids)
 
     query = f"""
     WITH locs AS (
-        SELECT * FROM (VALUES {loc_values_sql}) AS t(loc_id)
+        SELECT * FROM (VALUES {loc_values_sql}) AS t(ELR_MIL)
     ),
     params AS (
         SELECT '{start_date}'::timestamp AS p_start,
                '{end_date}'::timestamp   AS p_end
     ),
     hours AS (
-        SELECT l.loc_id,
+        SELECT l.ELR_MIL,
                gs.ts
         FROM locs l
         CROSS JOIN LATERAL generate_series(
@@ -76,7 +75,7 @@ def generate_main_database(
         ) AS gs(ts)
     )
     SELECT
-        loc_id,
+        ELR_MIL,
         EXTRACT(year  FROM ts) AS year,
         EXTRACT(month FROM ts) AS month,
         EXTRACT(day   FROM ts) AS day,
@@ -115,7 +114,7 @@ def generate_main_database(
     con.close()
 
 def stream_main_database(
-    loc_ids: Sequence[str | int],
+    ELR_MILs: Sequence[str | int],
     start_date: Union[dt.datetime,str] ,
     end_date: Union[dt.datetime,str],
     output_dir: Union[str, Path],
@@ -143,7 +142,7 @@ def stream_main_database(
         win_end = min(win_end, pd.Timestamp(end_date))
 
         generate_main_database(
-            loc_ids,
+            ELR_MILs,
             win_start.to_pydatetime(),
             win_end.to_pydatetime(),
             output_dir,

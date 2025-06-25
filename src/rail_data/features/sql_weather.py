@@ -17,8 +17,8 @@ AGG_MAP = {
 }
 
 def build_weather_features(
-    parquet_dir: str | Path,
     *,
+    parquet_dir: str | Path = None,
     start_date: dt.datetime | None = None,
     end_date: dt.datetime | None = None,
     window_rule: str | dt.timedelta = "ME",
@@ -35,13 +35,12 @@ def build_weather_features(
     window_rule : str | datetime.timedelta, default ``"M"``
         Size of each processing window (e.g. ``"W"`` for weekly).
     """
-
+    if settings and settings.weather:
+        parquet_dir = parquet_dir or settings.weather.parquet_dir
     parquet_dir = Path(parquet_dir)
     parquet_glob = str(parquet_dir.joinpath("*.parquet"))
 
-    # Determine full date range if not provided
     if start_date is None or end_date is None:
-        # Scan all parquet files to get min/max timestamp
         con_stats = duckdb.connect()
         stats_sql = (
             "SELECT MIN(make_timestamp(year,month,day,hour,0,0)), "
@@ -56,7 +55,6 @@ def build_weather_features(
         if end_date is None:
             end_date = pd.Timestamp(max_ts)
 
-    # Ensure timestamps are pandas Timestamps
     offset = pd.tseries.frequencies.to_offset(window_rule)
     win_start = pd.Timestamp(start_date)
     win_end_limit = pd.Timestamp(end_date)
@@ -121,7 +119,7 @@ def build_weather_features(
         df = con.execute(query).fetchdf()
         df.to_parquet(
             parquet_dir,
-            partition_cols=["ELR_MIL", "year", "month", "day", "hour"],
+            partition_cols=["ELR_MIL", "year", "month", "day"],
             engine="pyarrow",
             index=False,
         )

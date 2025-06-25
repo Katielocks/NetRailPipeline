@@ -42,7 +42,9 @@ class ColumnFeatureMap(RootModel[Dict[str, TableFeature]]):
 
     def items(self) -> Mapping[str, TableFeature].items:
         return self._data.items()
-
+    
+    def keys(self) -> Mapping[str, TableFeature].keys:
+        return self._data.keys()
 
 class TableFeatureMap(RootModel[Dict[str, ColumnFeatureMap]]):
     model_config = ConfigDict(frozen=True)

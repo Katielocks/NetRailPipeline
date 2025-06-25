@@ -18,7 +18,7 @@ from ..io import settings, get_geospatial
 logger = logging.getLogger(__name__)
 
 _PARTITION_COLS: Final[list[str]] = [
-    "ELR_MIL", "year", "month", "day", "hour",
+    "ELR_MIL", "year", "month", "day",
 ]
 
 def sep_datetime(
