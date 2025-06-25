@@ -17,7 +17,7 @@ weather:
         snow_depth:
           action: "sum"
           window_hours: 24
-      WM:
+      WM: {}
     flags:
       freeze:
         table:

@@ -52,6 +52,8 @@ def _mk_parquet_expr(base: Path) -> str:
         if hourly:
             files.append(str(hourly[0]))
     if not files:
+        files = [str(p) for p in sorted(base.glob("*.parquet"))]
+    if not files:
         raise FileNotFoundError(f"No Parquet files under {base}")
     return "[" + ", ".join(f"'{p}'" for p in files) + "]"
 
@@ -101,7 +103,15 @@ def build_weather_features(
 
 
             cols = [r[1] for r in con.execute("PRAGMA table_info('weather')").fetchall()]
-            raw_cols = [c for c in cols if c not in {"ts"}]
+            drop_cols = set()
+            for _tbl, col_map in settings.weather.features.tables.items():
+                drop_cols.update(col_map.keys())
+            for _flag, flag_cfg in settings.weather.features.flags.items():
+                tbl = next(iter(flag_cfg.table))
+                col_cfg = flag_cfg.table[tbl]
+                drop_cols.add(next(iter(col_cfg)))
+
+            raw_cols = [c for c in cols if c not in {"ts"} and c not in drop_cols]
 
     
             feat_terms: List[str] = []
