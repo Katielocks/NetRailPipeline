@@ -140,7 +140,7 @@ def _extract_first_csv(zip_path: Path, dest_dir: Path, fmt: str, year:str, perio
         for member in zf.namelist():
             if not member.lower().endswith(".csv"):
                 continue
-            dest = f"{name}_{year}_{period}.{fmt}"
+            dest = dest_dir/f"{name}_{year}_{period}.{fmt}"
             dest.parent.mkdir(parents=True, exist_ok=True)
             with zf.open(member) as src:
                 df = _process_delay_dataframe(src)

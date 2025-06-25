@@ -3,7 +3,10 @@ weather:
   midas:
     version: "202407"
     tables:
-      TD: []
+      TD: ["min_air_temp", max_air_temp]
+      RH: ["prcp_amt"]
+      WH: ["snow_depth","visibility","prst_wx_id"]
+      WM: ["max_gust_speed", "max_gust_dir"]
   cache_dir: "data/raw/archive/weather"
   cache_format: "csv"
 timetable:

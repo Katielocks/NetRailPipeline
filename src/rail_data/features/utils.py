@@ -21,7 +21,6 @@ _PARTITION_COLS: Final[list[str]] = [
     "ELR_MIL", "year", "month", "day", "hour",
 ]
 
-
 def sep_datetime(
     datetime_column: Union[pd.Series, pd.DatetimeIndex],
     components: List[str] = ["year", "month", "day", "hour"]

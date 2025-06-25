@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 _OUTPUT_WRITERS: dict[str, Callable[[pd.DataFrame, Path, str | None], None]] = {
     "csv":     lambda df, p:     df.to_csv(p, index=False, compression="infer"),
     "parquet": lambda df, p:     df.to_parquet(p, index=False),
-    "json":    lambda df, p:     df.to_json(p, orient="records", compression="infer"),
+    "json":    lambda df, p:     df.to_json(p, orient="records", compression="infer",indent=2),
 }
 
 _INPUT_READERS: dict[str, Callable[[Path, str | None], pd.DataFrame]] = {

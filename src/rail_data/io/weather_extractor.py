@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from pyproj import Transformer
 import logging
+from dateutil import parser
 
 from midas_client import download_locations
 from .utils import read_cache,write_cache
@@ -42,7 +43,7 @@ def _get_centroids(geospatial:pd.DataFrame) -> pd.DataFrame:
     )
 
     centroid = centroid.assign(Latitude=lat, Longitude=lon)
-    return centroid
+    return centroid[["ELR_MIL", "Latitude", "Longitude"]]
 
 
 def extract_weather(
@@ -63,7 +64,7 @@ def extract_weather(
     geospatial
         DataFrame containing *at least* ``location_code``, ``Easting`` and ``Northing``.
     start_date, end_date
-        Inclusive date range. Accepts ISO‑8601 strings or ``datetime``/``date`` objects.
+        Inclusive date range. Accepts ISO-8601 strings or ``datetime``/``date`` objects.
     tables
         Dict of MIDAS obs table names; with observation columns eg (max_temp) as items.
     cache_dir, cache_format
@@ -89,6 +90,8 @@ def extract_weather(
     if not cache_dir or not cache_format:
         raise ValueError("Must provide Valid Cache Directory and Cache Format")
     centroid = _get_centroids(geospatial)
+
+
     station_map = download_locations(
         centroid,
         years=years,
@@ -97,7 +100,7 @@ def extract_weather(
         out_fmt=cache_format,
     )
 
-    return station_map
+    return station_map.reset_index(drop=True) 
 
 
 def get_weather(
@@ -136,7 +139,20 @@ def get_weather(
         Combined station mapping for all requested tables/years.
     """
     log.info("Ensuring weather data from %s to %s", start_date, end_date)
+    if isinstance(start_date, str):
+        start_date = parser.parse(start_date)
+    
+    if isinstance(end_date, str):
+        end_date = parser.parse(end_date)
     years = [str(y) for y in range(start_date.year, end_date.year + 1)]
+
+
+    if settings and settings.weather:
+        cache_dir = cache_dir or settings.weather.cache_dir
+        cache_format = cache_format or settings.weather.cache_format
+        if settings.weather.midas:
+            version = version or settings.weather.midas.version
+            tables = tables or settings.weather.midas.tables
 
     station_map_path = cache_dir / "station_map.json"
     if station_map_path.exists():
@@ -162,6 +178,7 @@ def get_weather(
     elif geospatial is None:
         raise ValueError("You must import the geospatial dataframe or provide a path to the cache")
 
+    geospatial = geospatial.head(5)
 
     station_maps: list[pd.DataFrame] = []
     if not existing_map.empty:
@@ -179,12 +196,11 @@ def get_weather(
                     version=version
                 )
             )
+    print(station_maps[0],station_maps[1])
     combined = (
-        pd.concat(station_maps, ignore_index=True)
-        .drop_duplicates(subset=["loc_id", "year"], keep="last")
-        .sort_values(["loc_id", "year"])
-        .reset_index(drop=True)
-    )
+        pd.concat([yr.set_index(['loc_id', 'year']) for yr in station_maps], axis=1)
+    ).reset_index()
+    print(combined)
     write_cache(station_map_path,combined)
     return combined
 

@@ -98,11 +98,11 @@ def extract_datasets(start_date: dt.date | dt.datetime | str, end_date: dt.date 
     )
 
     fetch_public_holidays()
-
+    """
     corpus_df = extract_corpus(settings.ref.corpus.input)
     if settings.ref.corpus.cache:
         write_cache(settings.ref.corpus.cache, corpus_df)
-
+    """
 
 def get_datasets(start_date: dt.date | dt.datetime | str, end_date: dt.date | dt.datetime | str) -> None:
     """Ensure all datasets between ``start_date`` and ``end_date`` are available.
@@ -152,9 +152,9 @@ def get_datasets(start_date: dt.date | dt.datetime | str, end_date: dt.date | dt
 
     if settings.ref.bank_holiday.cache and not Path(settings.ref.bank_holiday.cache).exists():
         fetch_public_holidays()
-
+    """
     if settings.ref.corpus.cache and not Path(settings.ref.corpus.cache).exists():
         df = get_corpus(settings.ref.corpus.cache, settings.ref.corpus.input)
         if df is not None and not Path(settings.ref.corpus.cache).exists():
             write_cache(settings.ref.corpus.cache, df)
-
+    """

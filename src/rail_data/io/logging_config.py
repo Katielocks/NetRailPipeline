@@ -4,17 +4,11 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 class RelPathFilter(logging.Filter):
-    """
-    Replace absolute Paths that live under *project_root* with a
-    project-relative **string** for compact log output.
-    Non-path values are left untouched.
-    """
     def __init__(self, project_root: Path):
         super().__init__()
         self.project_root = project_root.resolve()
 
     def _is_pathlike_str(self, s: str) -> bool:
-        """True if *s* looks like a filesystem path."""
         return any(sep in s for sep in (os.sep, os.altsep or '')) or ':' in s[:3]
 
     def _maybe_relpath(self, value: Any) -> Any:

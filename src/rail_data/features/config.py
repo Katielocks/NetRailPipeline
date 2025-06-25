@@ -106,6 +106,8 @@ class WeatherFeatures(BaseModel):
 
 class WeatherCfg(BaseModel):
     features: WeatherFeatures
+    cache_dir: Path = Field(alias = "cache_dir")
+    cache_format: Path = Field(alias = "cache_format")
     parquet_dir: Path = Field(alias="parquet_dir")
 
     @field_validator("parquet_dir", mode="before")
