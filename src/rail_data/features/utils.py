@@ -92,7 +92,8 @@ def write_to_parquet(
     df: pd.DataFrame,
     out_root: str | Path,
     partition_cols: Iterable[str] = None,
-    parquet_compression: str | None = "snappy"
+    parquet_compression: str | None = "snappy",
+    max_parts: int = 5000
 ) -> ds.Dataset:
     
     partition_cols = partition_cols or _PARTITION_COLS
@@ -107,6 +108,7 @@ def write_to_parquet(
             partition_cols=list(partition_cols),
             existing_data_behavior="overwrite_or_ignore",  
             compression=parquet_compression,
+             max_partitions=max_parts,
         )
     except TypeError: 
         pq.write_to_dataset(

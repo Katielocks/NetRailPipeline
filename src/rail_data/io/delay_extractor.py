@@ -91,20 +91,19 @@ def _prune_business_period_map(
     business_periods: Dict[str, Set[str]],
     base_dir: Path,
     file_ext: str = None,
-    required_parts: Set[str] = None
+    file_name: str = 'delay'
 ) -> Dict[str, Set[str]]:
     pruned: Dict[str, Set[str]] = {}
 
     for code, parts in business_periods.items():
         missing_parts: Set[str] = set()
-        year_folder = base_dir / code
         for part in parts:
-            part_folder = year_folder / part
+            part_name = f"{file_name}_{code}_{part}"
             has_part = (
                 _check_folder(
-                    part_folder,
+                    base_dir,
                     file_ext=file_ext,
-                    required_parts=required_parts
+                    required_parts={part_name}
                 )
                 is True
             )

@@ -6,14 +6,15 @@ import math
 import re
 from pathlib import Path
 from typing import Final, Iterable, Union, Dict, List, Set
+from dateutil import parser
 
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from ..io import settings, read_cache 
-from .utils import location_to_ELR_MIL, sep_datetime  
-
+from ..io import settings as io_settings, read_cache 
+from .utils import location_to_ELR_MIL, sep_datetime,write_to_parquet  
+from .config import settings as feat_settings
 
 _YEAR_START: Final[tuple[int, int]] = (4, 1)            # 1 April
 _PART_DURATION: Final[dt.timedelta] = dt.timedelta(days=28)
@@ -39,12 +40,17 @@ def _build_business_period_map(
     year_start: tuple[int, int] = _YEAR_START,
     part_duration: dt.timedelta = _PART_DURATION,
 ) -> List[str]:
-    """List *business‑period* codes that intersect the ``[start_date, end_date]`` window.
+    """List *business-period* codes that intersect the ``[start_date, end_date]`` window.
 
     """
     if start_date > end_date:
         raise ValueError("start_date must be <= end_date")
-
+    
+    if isinstance(start_date, str):
+        start_date = parser.parse(start_date)
+    
+    if isinstance(end_date, str):
+        end_date = parser.parse(end_date)
     start_year_date = _business_year_start(start_date, year_start=year_start)
     end_year_date = _business_year_start(end_date, year_start=year_start)
 
@@ -66,8 +72,7 @@ def _build_business_period_map(
                 else by_end
             )
             if part_start <= end_date and part_end >= start_date:
-                periods.append(f"{code}_P{part_num:02d}")
-
+                periods.append(f"delay_{code}_P{part_num:02d}")
     return periods
 
 def _delay_files(
@@ -118,24 +123,23 @@ def extract_incident_dataset(
     scan_codes: bool = True,
 ) -> None:
    
-    if settings and getattr(settings, "delay", None):
-        directory = directory or settings.delay.cache
-        fmt = fmt or settings.delay.cache_format
+    if io_settings and getattr(io_settings, "delay", None):
+        directory = directory or io_settings.delay.cache
+        fmt = fmt or io_settings.delay.cache_format
+    if feat_settings and feat_settings.incidents:
+        cache_path = cache_path or feat_settings.incidents.parquet_dir
     if directory is None or fmt is None:
-        raise ValueError("'directory' and 'fmt' must be provided (or via settings)")
+        raise ValueError("'directory' and 'fmt' must be provided (or via io_settings)")
 
     directory = Path(directory)
-    cache_path = Path(cache_path or directory / "incident_counts")
-    cache_path.mkdir(parents=True, exist_ok=True)
-
     files = _delay_files(
         directory,
         fmt=fmt,
-        start=start_date,
-        end=end_date,
+        start_date=start_date,
+        end_date=end_date,
     )
     if not files:
-        logger.warning("No delay files matched the given criteria – nothing to do.")
+        logger.warning("No delay files matched the given criteria - nothing to do.")
         return
 
     codes: Set[str]
@@ -144,27 +148,24 @@ def extract_incident_dataset(
     elif scan_codes:
         codes = _discover_incident_codes(files, fmt)
     else:
-        raise ValueError("'expected_codes' is None and 'scan_codes' is False – "
+        raise ValueError("'expected_codes' is None and 'scan_codes' is False - "
                          "cannot determine which columns to create.")
 
     if not codes:
         raise RuntimeError("No INCIDENT_REASON codes could be determined.")
 
     codes = set(map(str, codes))  
-    sorted_codes = sorted(codes)
-    sorted_codes = sorted(codes)          # ['FK', 'WF', ...]
+    sorted_codes = sorted(codes)   
     prefix = "INCIDENT_"
     sorted_codes = [f"{prefix}{c}" for c in sorted_codes]
-    logger.info("Normalising to %d incident‑reason columns: %s", len(codes), sorted_codes)
 
     arrow_schema = pa.schema(
         [
-            pa.field("EVENT_HOUR", pa.timestamp("ms")),
+            pa.field("hour", pa.int32()),
             pa.field("ELR_MIL", pa.string()),
             *[pa.field(code, pa.int16()) for code in sorted_codes],
         ]
     )
-
    
     for f in files:
         try:
@@ -175,31 +176,27 @@ def extract_incident_dataset(
         
 
         if not df.empty:
-            
+            df["EVENT_DATETIME"] = pd.to_datetime(df["EVENT_DATETIME"])
             if start_date is not None and end_date is not None:
                 df = df[df["EVENT_DATETIME"].between(start_date, end_date)]
-
-            df["ELR_MIL"] = location_to_ELR_MIL(df["SECTION_CODE"].str.split(":")[0])
+            df["ELR_MIL"] = location_to_ELR_MIL(df["SECTION_CODE"].str.split(':', n=1).str[0].astype(int))
             df = (df.sort_values(["INCIDENT_REASON", "EVENT_DATETIME","ELR_MIL"])
                     .drop_duplicates(subset="INCIDENT_REASON", keep="first"))
             datetime = sep_datetime(df["EVENT_DATETIME"])
             df = df[["ELR_MIL","INCIDENT_REASON"]]
             df = pd.concat([df, datetime], axis=1)
-
             cols = ["ELR_MIL", "year", "month", "day", "hour"] + ["INCIDENT_REASON"]
-            counts = (df
+            counts = (
+                df
                 .groupby(cols)
-                .size()                   
+                .size()   
                 .unstack(fill_value=0)
-                .rename(columns=lambda c: f"{prefix}{c}")      
-                .sort_index())             
-
-            table = pa.Table.from_pandas(
-                counts.reset_index(), schema=arrow_schema, preserve_index=False
+                .rename(columns=lambda c: f"{prefix}{c}")
+                .sort_index()
             )
-            out_file = cache_path / f"{f.stem}.parquet"
-            pq.write_table(table, out_file)
-            logger.debug("Wrote %s", out_file)
+
+            counts = counts.reindex(columns=sorted_codes, fill_value=0)
+            write_to_parquet(counts,cache_path)
 
     logger.info("Finished Extracting Incident Dataset: %d files processed", len(files))
 

@@ -63,7 +63,7 @@ def build_weather_features(
     parquet_dir: str | Path | None = None,
     start_date: dt.datetime | None = None,
     end_date: dt.datetime | None = None,
-    window_rule: str | dt.timedelta = "ME",
+    window_rule: str | dt.timedelta = "W"
 ) -> None:
     """Create feature Parquets retaining all raw columns & adding aggregates/flags.
     """

@@ -178,7 +178,6 @@ def get_weather(
     elif geospatial is None:
         raise ValueError("You must import the geospatial dataframe or provide a path to the cache")
 
-    geospatial = geospatial.head(5)
 
     station_maps: list[pd.DataFrame] = []
     if not existing_map.empty:
@@ -196,11 +195,10 @@ def get_weather(
                     version=version
                 )
             )
-    print(station_maps[0],station_maps[1])
+
     combined = (
         pd.concat([yr.set_index(['loc_id', 'year']) for yr in station_maps], axis=1)
     ).reset_index()
-    print(combined)
     write_cache(station_map_path,combined)
     return combined
 
