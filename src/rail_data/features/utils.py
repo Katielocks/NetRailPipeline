@@ -101,6 +101,7 @@ def write_to_parquet(
     out_path = Path(out_root).expanduser().resolve()
     out_path.mkdir(parents=True, exist_ok=True)
     table = pa.Table.from_pandas(df)
+    logger.info("Writing parquet to %s", out_path)
     try:
         pq.write_to_dataset(
             table,
@@ -117,3 +118,4 @@ def write_to_parquet(
             partition_cols=list(partition_cols),
             compression=parquet_compression,
         )
+    

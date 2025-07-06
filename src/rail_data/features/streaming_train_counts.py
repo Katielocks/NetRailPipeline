@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Iterable, Dict
+import logging
 
 import datetime as dt
 
@@ -17,6 +18,7 @@ from ..io import settings as io_settings, get_timetable
 from .utils import write_to_parquet, location_to_ELR_MIL, sep_datetime
 from .config import settings as feat_settings
 
+log = logging.getLogger(__name__)
 
 _DOW_COLS: tuple[str, ...] = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
@@ -144,6 +146,9 @@ def extract_train_counts(
         Size of each processing window.  Examples: ``"ME"`` for months,
         or ``timedelta(days=3)``.
     """
+    log.info(
+        "Extracting train counts between %s and %s", start_date, end_date
+    )
 
     out_root = (
         Path(out_root)
@@ -181,7 +186,7 @@ def extract_train_counts(
     win_start = horizon_start
 
     while win_start <= horizon_end:
-        print(win_start,horizon_end)
+        log.debug("Window %s to %s", win_start, horizon_end)
         win_end = (win_start + offset) - pd.Timedelta(seconds=1)
         if win_end > horizon_end:
             win_end = horizon_end
@@ -206,7 +211,7 @@ def extract_train_counts(
             partition_cols=partition_cols,
             parquet_compression=parquet_compression,
         )
-
+        log.debug("Wrote counts for %s to %s", win_start, win_end)
         win_start += offset
-
+    log.info("Finished extracting train counts")
     return ds.dataset(out_root, format="parquet")

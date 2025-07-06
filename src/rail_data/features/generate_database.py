@@ -5,6 +5,9 @@ from typing import Sequence, Union, Any, Iterable
 import os
 from dateutil import parser
 import pandas as pd
+import logging
+
+log = logging.getLogger(__name__)
 
 
 def _sql_value(val: Any) -> str:
@@ -48,6 +51,10 @@ def generate_main_database(
         "overwrite": "OVERWRITE",
         "ignore": "OVERWRITE_OR_IGNORE",
     }
+    log.info(
+        "Generating main feature part from %s to %s", start_date, end_date
+    )
+
     if write_mode not in mode_kw:
         raise ValueError("write_mode must be 'append', 'overwrite', or 'ignore'")
 
@@ -112,7 +119,6 @@ def generate_main_database(
     """
     con.execute(copy_stmt)
     con.close()
-
 def stream_main_database(
     ELR_MILs: Sequence[str | int],
     start_date: Union[dt.datetime,str] ,
@@ -120,7 +126,7 @@ def stream_main_database(
     output_dir: Union[str, Path],
     *,
     database: str = ":memory:",
-    window_rule: str | dt.timedelta = "d",
+    window_rule: str | dt.timedelta = "W",
 ) -> None:
     """
     Generate the feature dataset in rolling windows (weekly, monthly, …),
@@ -129,7 +135,7 @@ def stream_main_database(
 
     if isinstance(start_date, str):
         start_date = parser.parse(start_date)
-    
+    log.info("Streaming main database from %s to %s", start_date, end_date)
     if isinstance(end_date, str):
         end_date = parser.parse(end_date)
     Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -140,7 +146,7 @@ def stream_main_database(
     while win_start <= end_date:
         win_end = win_start + offset - pd.Timedelta(seconds=1)
         win_end = min(win_end, pd.Timestamp(end_date))
-
+        log.debug("Window %s to %s", win_start, win_end)
         generate_main_database(
             ELR_MILs,
             win_start.to_pydatetime(),
@@ -150,3 +156,5 @@ def stream_main_database(
         )
 
         win_start += offset
+
+    log.info("Finished streaming main database")

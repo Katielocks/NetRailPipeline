@@ -5,10 +5,15 @@ import numpy as np
 from pathlib import Path
 from dateutil import parser
 import datetime as dt
-from typing import Dict, List,Callable,Union
+from typing import Dict, List, Callable, Union
+
+log = logging.getLogger(__name__)
+
 from ..io import read_cache
 from .config import settings
 from .utils import write_to_parquet,sep_datetime
+
+
 
 AGG_FUNCS: Dict[str, Callable] = {
     "min": np.min,
@@ -68,11 +73,10 @@ def _load_table(year:str,
         input_dir = input_dir or settings.weather.cache_dir
         input_fmt = input_fmt or settings.weather.cache_format
     
-    
     if input_dir and Path(input_dir).exists():
         input_path = f"{input_dir}/{table}_{year}.{input_fmt}"
+        log.debug("Loading weather table %s", input_path)
         df = read_cache(input_path)
-
         df["meto_stmp_time"] = pd.to_datetime(df["meto_stmp_time"],
                                     errors="coerce")
         df = df.fillna(0)
@@ -109,10 +113,17 @@ def _get_years(
 
 
 
-def build_raw_weather_feature_frame(start_date: dt.datetime = None,end_date: dt.datetime = None) -> pd.DataFrame:
+def build_raw_weather_feature_frame(
+    start_date: dt.datetime = None,
+    end_date: dt.datetime = None,
+    parquet_dir: str | Path | None = None,
+) -> pd.DataFrame:
     """
     Explodes data from Station spefic Dataset to a location spefic Dataset
     """
+    log.info(
+        "Building raw weather features from %s to %s", start_date, end_date
+    )
 
     station_map = read_cache(f"{settings.weather.cache_dir}/station_map.json")
     station_map["year"] = station_map["year"].astype(str)
@@ -126,8 +137,9 @@ def build_raw_weather_feature_frame(start_date: dt.datetime = None,end_date: dt.
     start_date = pd.to_datetime(start_date).tz_localize(None)
     end_date   = pd.to_datetime(end_date).tz_localize(None)
 
-    years = _get_years(start_date=start_date,end_date=end_date)
+    years = _get_years(start_date=start_date, end_date=end_date)
     for yr in years:
+        log.debug("Processing weather year %s", yr)
         location = pd.DataFrame()
         for table_name, col_map in settings.weather.features.tables.items():
 
@@ -168,5 +180,7 @@ def build_raw_weather_feature_frame(start_date: dt.datetime = None,end_date: dt.
                     how="outer"
                 )
         location = location.rename(columns={"loc_id": "ELR_MIL"})
-        write_to_parquet(location,settings.weather.parquet_dir)
+        out_dir = parquet_dir or settings.weather.parquet_dir
+        write_to_parquet(location, out_dir)
+        log.info("Wrote base weather features for %s", yr)
             

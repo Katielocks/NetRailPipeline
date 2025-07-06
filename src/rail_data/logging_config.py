@@ -56,7 +56,7 @@ def setup_logging(level=logging.INFO) -> None:
     handler.setLevel(level)
     handler.addFilter(RelPathFilter(project_root))
 
-    fmt = "%(asctime)s %(levelname)-5s [%(module)s]: %(message)s"
+    fmt = fmt = "%(asctime)s %(levelname)-5s [%(name)s]: %(message)s"
     datefmt = "%Y-%m-%d %H:%M:%S"
     handler.setFormatter(logging.Formatter(fmt, datefmt))
 

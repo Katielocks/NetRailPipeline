@@ -3,7 +3,11 @@ from __future__ import annotations
 import datetime as dt
 from pathlib import Path
 
+import logging
+
 from ..io import settings as io_settings
+
+log = logging.getLogger(__name__)
 from .convert_weather import build_raw_weather_feature_frame
 from .sql_weather import build_weather_features
 from .streaming_train_counts import extract_train_counts
@@ -29,6 +33,7 @@ def create_datasets(start_date: dt.date | dt.datetime | str,
 
     Existing Parquet data will be overwritten.
     """
+    log.info("Creating feature datasets from %s to %s", start_date, end_date)
     start_dt = _as_datetime(start_date)
     end_dt = _as_datetime(end_date)
     if start_dt > end_dt:
@@ -39,12 +44,17 @@ def create_datasets(start_date: dt.date | dt.datetime | str,
 
 
     stream_main_database(loc_ids,start_date,end_date,settings.main.parquet_dir)
+    log.info("Main time-base generated")
 
-    build_raw_weather_feature_frame(start_date=start_dt, end_date=end_dt)
-    build_weather_features(parquet_dir=settings.weather.parquet_dir)
-
+    build_weather_features(
+        parquet_dir=settings.weather.parquet_dir,
+        start_date=start_dt,
+        end_date=end_dt,
+        build_raw=True,
+    )
+    log.info("Weather features complete")
     extract_train_counts(out_root=settings.train_counts.parquet_dir,start_date=start_date,end_date=end_date)
-
+    log.info("Train counts extracted")
     extract_incident_dataset(
         directory=Path(io_settings.delay.cache),
         fmt=io_settings.delay.cache_format,
@@ -52,3 +62,4 @@ def create_datasets(start_date: dt.date | dt.datetime | str,
         start_date=start_dt,
         end_date=end_dt,
     )
+    log.info("Incident dataset extracted")

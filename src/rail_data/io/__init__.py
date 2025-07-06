@@ -1,7 +1,5 @@
-from .logging_config import setup_logging
 from .config import settings
 
-setup_logging()
 
 from .corpus_client import extract_corpus, get_corpus
 from .weather_extractor import extract_weather, get_weather
