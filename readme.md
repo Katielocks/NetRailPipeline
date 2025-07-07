@@ -11,19 +11,21 @@ In future versions, this will include incident and delay modelling subpackages.
 src/
 ├── rail_data/
 │   ├── io/        # Raw data ingestion, caching, and parsing
-│   └── features/  # Feature engineering on cached data
+│   ├── features/  # Feature engineering on cached data
+│   └── models/    # Model training utilities (rough draft!)
 ```
 
 ## Key Concepts
 
 - **Track segments** are identified by `ELR_MIL` codes (Engineer’s Line Reference + milepoint bin).
 - All datasets are **hourly resolution**, partitioned by segment and time.
-- The pipeline works in **two stages**:
-  1. **[Data ingestion (`io/`)](src/rail_data/io/readme.md)**  
+- The pipeline works in **three stages**:
+  1. **[Data ingestion (`io/`)](src/rail_data/io/readme.md)**
      Fetches and normalises raw feeds (weather, train schedules, delay logs, holidays, shapefiles…).
-  2. **[Feature engineering (`features/`)](src/rail_data/features/readme.md)**  
+  2. **[Feature engineering (`features/`)](src/rail_data/features/readme.md)**
      Builds timebases, aggregates weather, counts trains/incidents, and outputs partitioned Parquet datasets.
-
+  3. **[Modelling (`models/`)](src/rail_data/models/readme.md)**
+     Combines feature tables and fits statistical models for incident data.
 ---
 
 ## Example Workflow
