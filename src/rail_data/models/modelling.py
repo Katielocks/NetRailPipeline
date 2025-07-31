@@ -15,11 +15,11 @@ from pandas.api.types import (
     is_categorical_dtype,
     is_integer_dtype,
 )
-
+from statsmodels.discrete.count_model import ZeroInflatedNegativeBinomialP
 import statsmodels.formula.api as smf
 import statsmodels.api as sm
 
-from ..features.config import settings as feature_settings  # type: ignore
+from ..features.config import settings as feature_settings  
 
 from .construct_frame import build_modelling_frame,_first_elr_mil
 
@@ -31,19 +31,17 @@ def _quote_if_needed(col: str) -> str:
     """Wrap *col* in Q("…") if Patsy needs it."""
     return col if _IDENTIFIER_RE.fullmatch(col) else f'Q("{col}")'
 
-def build_formula(
+def categorize_columns(
     df: pd.DataFrame,
     *,
     response: str = "y",
     cat_unique_cutoff: int = 20,
     force_numeric: Iterable[str] | None = ("train_count",),
-) -> str:
-    """
-    Build a Patsy formula string, treating listed *force_numeric* columns
-    (default just ``train_count``) as numeric regardless of dtype.
-    """
+    ) -> dict[str, list[str]]:
+    """Return columns grouped by modelling data type."""
+
     force_numeric = set(force_numeric or [])
-    terms: list[str] = []
+    categories = {"numeric": [], "categorical": []}
 
     for col in df.columns:
         if col == response:
@@ -53,7 +51,7 @@ def build_formula(
         s = df[col]
 
         if col in force_numeric:
-            terms.append(escaped)
+            categories["numeric"].append(col)
             continue
 
         if (
@@ -62,11 +60,36 @@ def build_formula(
             or is_categorical_dtype(s)
             or (is_integer_dtype(s) and s.nunique(dropna=False) <= cat_unique_cutoff)
         ):
-            terms.append(f"C({escaped})")
+            categories["categorical"].append(col)
         else:
-            terms.append(escaped)
+            categories["numeric"].append(col)
 
-    return f"{response} ~ " + " + ".join(sorted(terms))
+    return categories
+
+
+def build_formula(
+    df: pd.DataFrame,
+    *,
+    response: str = "y",
+    cat_unique_cutoff: int = 20,
+    force_numeric: Iterable[str] | None = ("train_count",),
+) -> str:
+    """Build a Patsy model formula for ``df``."""
+
+    categories = categorize_columns(
+        df,
+        response=response,
+        cat_unique_cutoff=cat_unique_cutoff,
+        force_numeric=force_numeric,
+    )
+
+    terms: list[str] = []
+    for col in sorted(categories["numeric"]):
+        terms.append(_quote_if_needed(col))
+    for col in sorted(categories["categorical"]):
+        terms.append(f"C({_quote_if_needed(col)})")
+
+    return f"{response} ~ " + " + ".join(terms)
 
 
 def split_xy(
@@ -89,24 +112,58 @@ def split_xy(
     return X, y
 
 
-def _fit_single_zinb(df: pd.DataFrame):
-    """
-    Legacy helper: fit a single Zero-Inflated NB-P model on df['y'].
-    (Only useful if you manually create a `y` scalar.)
-    """
-    if "y" not in df.columns:
-        raise ValueError("'y' column missing – create one or fit per incident.")
-
-    df = df.copy()
+def train_model_for_elr_zinb(
+    elr_mil: str,
+    *,
+    time_filter: Optional[Dict[str, Union[int, List[int]]]] = None,
+    inflation_rhs: str | None = "1",
+    dist: str = "negbin",
+    method: str = "bfgs",
+    maxiter: int = 1000,
+    return_xy: bool = False,
+):
+    df = build_modelling_frame(elr_mil=elr_mil, time_filter=time_filter)
     df.drop(columns=["hour", "day", "month", "year", "run_hour"], errors="ignore", inplace=True)
-
-    model = smf.glm(
-        formula=build_formula(df),
-        data=df,
-        family=sm.families.Poisson(),
-    )
-    return model.fit()
-
+    X, Y = split_xy(df)
+    if return_xy:
+        return X, Y
+    results: Dict[str, sm.regression.linear_model.RegressionResultsWrapper] = {}
+    for col in Y.columns:
+        y = Y[col].astype(float)
+        if y.sum() == 0:
+            continue
+        df_model = X.copy()
+        df_model["y"] = y
+        rhs = build_formula(df_model).split("~", 1)[1].strip()
+        inflation_part = rhs if inflation_rhs is None else inflation_rhs
+        formula = f"y ~ {rhs} | {inflation_part}"
+        fit = ZeroInflatedNegativeBinomialP(
+            endog=y.values,
+            exog= X.values,
+            exog_infl=X.values,   
+            inflation="logit"
+        )
+        try:
+            fit = ZeroInflatedNegativeBinomialP(
+            endog=y.values,
+            exog= X.values,
+            exog_infl=X.values,   
+            inflation="logit"
+            )
+            results[col] = fit
+            log.info(
+                "Fitted ZINB for %s (alpha=%.3g, LL=%.1f)",
+                col,
+                fit.params.get("alpha", np.nan),
+                fit.llf,
+            )
+        except Exception:
+            log.exception("Failed to fit ZINB for %s", col)
+    if not results:
+        raise RuntimeError("No incident models were fitted successfully.")
+    first_key = next(iter(results))
+    print(results[first_key].summary().as_text())
+    return results
 
 def train_model_for_elr(
     elr_mil: str,
@@ -114,13 +171,6 @@ def train_model_for_elr(
     time_filter: Optional[Dict[str, Union[int, List[int]]]] = None,
     return_xy: bool = False,
 ):
-    """
-    Quick helper:
-
-    • If *return_xy* → returns (X, Y) matrices ready for your own ML pipeline.
-    • Else           → fits a separate Poisson GLM **per incident column**
-                       and returns a dict {incident_name: result}.
-    """
     df = build_modelling_frame(elr_mil=elr_mil, time_filter=time_filter)
     df.drop(columns=["hour", "day", "month", "year", "run_hour"], errors="ignore", inplace=True)
     X, Y = split_xy(df)
@@ -162,4 +212,4 @@ def train_model_for_elr(
 def train_first_elr_model(*, return_xy: bool = False):
     """Convenience wrapper for the first ELR_MIL partition found on disk."""
     elr_mil = _first_elr_mil(feature_settings.incidents.parquet_dir)
-    return train_model_for_elr(elr_mil, return_xy=return_xy)
+    return train_model_for_elr_zinb(elr_mil, return_xy=return_xy)

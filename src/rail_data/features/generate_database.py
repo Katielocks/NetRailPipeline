@@ -37,15 +37,6 @@ def generate_main_database(
     """
     Build (or extend) a Hive-partitioned Parquet feature set.
 
-    Parameters
-    ----------
-    write_mode
-        * "append"     → new files alongside the old ones (DuckDB `APPEND`)
-        * "overwrite"  → blow away existing partitions (`OVERWRITE`)
-        * "ignore"     → skip partitions that already exist (`OVERWRITE_OR_IGNORE`)
-    Other arguments are unchanged.
-    """
-
     mode_kw = {
         "append": "APPEND",
         "overwrite": "OVERWRITE",

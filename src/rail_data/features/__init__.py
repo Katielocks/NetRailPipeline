@@ -10,6 +10,6 @@ __all__ = [
     "build_raw_weather_feature_frame",
     "extract_train_counts",
     "extract_incident_dataset",
-    "build_weather_features_sql",
+    "build_weather_features",
     "create_datasets",
 ]

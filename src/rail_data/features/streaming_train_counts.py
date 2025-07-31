@@ -29,7 +29,7 @@ def _yymmdd_to_datetime(s: pd.Series | pd.Index) -> pd.Series:
 
 
 def _hhmm_to_timedelta(s: pd.Series | pd.Index) -> pd.TimedeltaIndex:
-    """Vectorised HHMM → Timedelta (≈6× faster than the string method)."""
+    """Vectorised HHMM to Timedelta"""
     arr = s.to_numpy(dtype=int, copy=False)
     hours = arr // 100
     minutes = arr % 100
