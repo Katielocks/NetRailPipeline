@@ -20,11 +20,11 @@ src/
 - **Track segments** are identified by `ELR_MIL` codes (Engineer’s Line Reference + milepoint bin).
 - All datasets are **hourly resolution**, partitioned by segment and time.
 - The pipeline works in **three stages**:
-  1. **[Data ingestion (`io/`)](src/rail_data/io/readme.md)**
+  1. **[Data ingestion (`io/`)](src/rail_data/io/)**
      Fetches and normalises raw feeds (weather, train schedules, delay logs, holidays, shapefiles…).
-  2. **[Feature engineering (`features/`)](src/rail_data/features/readme.md)**
+  2. **[Feature engineering (`features/`)](src/rail_data/features/)**
      Builds timebases, aggregates weather, counts trains/incidents, and outputs partitioned Parquet datasets.
-  3. **[Modelling (`models/`)](src/rail_data/models/readme.md)**
+  3. **[Modelling (`models/`)](src/rail_data/models/)**
      Combines feature tables and fits statistical models for incident data.
 ---
 
