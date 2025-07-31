@@ -18,7 +18,7 @@ def _sql_value(val: Any) -> str:
 
 
 def _iterable_str(values: Iterable[Any]) -> str:
-    """Return a `(v1),(v2)…` string for a VALUES clause."""
+    """Return a `(v1),(v2)...` string for a VALUES clause."""
     return ", ".join(f"({_sql_value(v)})" for v in values)
 
 
@@ -36,7 +36,8 @@ def generate_main_database(
 ) -> None:
     """
     Build (or extend) a Hive-partitioned Parquet feature set.
-
+    """
+    
     mode_kw = {
         "append": "APPEND",
         "overwrite": "OVERWRITE",
