@@ -27,6 +27,12 @@ class TrainCfg(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+class SimulationCfg(BaseModel):
+    draws: int = Field(alias="draws")
+    seed: Optional[int] = Field(default=None, alias="seed")
+
+    model_config = ConfigDict(frozen=True, validate_by_name=True)
+
 
 class Settings(BaseModel):
     dataset: DatasetCfg
@@ -34,7 +40,7 @@ class Settings(BaseModel):
     output_dir: Path = Field(alias="output_dir")
     train: TrainCfg
     test: TrainCfg
-
+    simulation: SimulationCfg
     model_config = ConfigDict(frozen=True, validate_by_name=True)
 
 

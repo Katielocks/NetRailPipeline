@@ -11,3 +11,6 @@ train:
 test:
   start: "2024-07-01"
   end: "2024-07-31"
+simulation:
+  draws: 100
+  seed: 0

@@ -1,7 +1,8 @@
 """Convenient access to model-training helpers."""
 
 from .config import settings
-
+import .severity 
+from .severity import sample_incident_durations
 
 def build_modelling_frame(*args, **kwargs):
     """Lazy wrapper for :func:`construct_frame.build_modelling_frame`."""
@@ -37,6 +38,12 @@ def train_first_elr_model(*args, **kwargs):
 
     return _impl(*args, **kwargs)
 
+def sample_delay_severity(*args, **kwargs):
+    """Lazy wrapper for :func:`severity.sample_delay_severity`."""
+    from .severity import sample_delay_severity as _impl
+
+    return _impl(*args, **kwargs)
+
 __all__ = [
     "settings",
     "build_modelling_frame",
@@ -44,4 +51,6 @@ __all__ = [
     "split_xy",
     "train_model_for_elr",
     "train_first_elr_model",
+    "simulate_glm_counts",
+    "sample_incident_durations",
 ]
