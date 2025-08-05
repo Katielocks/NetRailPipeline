@@ -1,7 +1,12 @@
+import sys
+from pathlib import Path
+
 import numpy as np
 import pytest
 
-from rail_data.models.delay_severity import sample_incident_durations
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from rail_data.models.severity import sample_incident_durations
 
 
 def test_sample_incident_durations_reproducible():
