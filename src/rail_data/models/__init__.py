@@ -1,7 +1,6 @@
 """Convenient access to model-training helpers."""
 
 from .config import settings
-import .severity 
 from .severity import sample_incident_durations
 
 def build_modelling_frame(*args, **kwargs):
